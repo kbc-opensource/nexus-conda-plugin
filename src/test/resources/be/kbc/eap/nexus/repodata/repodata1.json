@@ -1,0 +1,23 @@
+{
+  "info": {
+    "subdir": "noarch"
+  },
+  "packages": {
+    "affine-2.1.0-pyh128a3a6_1.tar.bz2": {
+      "build": "pyh128a3a6_1",
+      "build_number": 1,
+      "depends": [
+        "python"
+      ],
+      "license": "BSD 3-Clause",
+      "md5": "0240708ea8947eec2539e8021d783f39",
+      "name": "affine",
+      "noarch": "python",
+      "sha256": "4602fc9f8ea6170576fcbdff785a4e4a81d73712b1d66cda5a767d097ee28539",
+      "size": 14341,
+      "subdir": "noarch",
+      "timestamp": 1510000844780,
+      "version": "2.1.0"
+    }
+  }
+}

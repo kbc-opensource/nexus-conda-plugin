@@ -1,0 +1,37 @@
+{
+  "info": {
+    "subdir": "noarch"
+  },
+  "packages": {
+    "alsa-lib-cos6-i686-1.1.0-hc30c76e_0.tar.bz2": {
+      "build": "hc30c76e_0",
+      "build_number": 0,
+      "depends": [],
+      "license": "LGPL (>= 2)",
+      "license_family": "LGPL",
+      "md5": "b758029dcaa24768ca144cc124d31ab4",
+      "name": "alsa-lib-cos6-i686",
+      "noarch": "generic",
+      "sha256": "58e463e7e84b9ae4aaca2e294b69710d2b62211b80282a0e65dfafb7f22f6f15",
+      "size": 426024,
+      "subdir": "noarch",
+      "timestamp": 1505098363921,
+      "version": "1.1.0"
+    },
+    "alsa-lib-cos6-x86_64-1.1.0-h6d2b67b_0.tar.bz2": {
+      "build": "h6d2b67b_0",
+      "build_number": 0,
+      "depends": [],
+      "license": "LGPL (>= 2)",
+      "license_family": "LGPL",
+      "md5": "2ca413bf44c0c6ecc4715819ecd71813",
+      "name": "alsa-lib-cos6-x86_64",
+      "noarch": "generic",
+      "sha256": "6b08fec880ac276595682fc1086550a61f656359b2b9ecd16478368e42731aa4",
+      "size": 435876,
+      "subdir": "noarch",
+      "timestamp": 1505691508748,
+      "version": "1.1.0"
+    }
+  }
+}
