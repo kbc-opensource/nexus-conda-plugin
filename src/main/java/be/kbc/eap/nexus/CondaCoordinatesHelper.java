@@ -4,9 +4,9 @@ public class CondaCoordinatesHelper
 {
     public static String getGroup(String path) {
         StringBuilder group = new StringBuilder();
-        if (!path.startsWith("/")) {
-            group.append("/");
-        }
+//        if (!path.startsWith("/")) {
+//            group.append("/");
+//        }
         int i = path.lastIndexOf("/");
         if (i != -1) {
             group.append(path.substring(0, i));

@@ -153,7 +153,7 @@ public class CondaFacetImpl
         StorageTx tx = UnitOfWork.currentTx();
 
         log.info("Get or create asset " + path.getPath());
-        Asset asset = getOrCreateAsset(getRepository(), path.getPath(), CondaCoordinatesHelper.getGroup(path.getPath()), path.getPath());
+        Asset asset = getOrCreateAsset(getRepository(), path.getFileName(), CondaCoordinatesHelper.getGroup(path.getPath()), path.getFileName());
 
         AttributesMap contentAttributes = null;
         if (payload instanceof Content) {
