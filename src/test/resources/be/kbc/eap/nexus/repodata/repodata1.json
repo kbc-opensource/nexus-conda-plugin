@@ -18,6 +18,22 @@
       "subdir": "noarch",
       "timestamp": 1510000844780,
       "version": "2.1.0"
+    },
+    "olefile-0.45.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python >=2.7,<2.8.0a0"
+      ],
+      "license": "BSD License 2-Clause",
+      "license_family": "BSD",
+      "md5": "ba6c53859e7e4205c67bd188b27e10cf",
+      "name": "olefile",
+      "sha256": "90e696bbae765bd1bf95eabd1c9f9b8ac428c19743d3c172c5f6d3fc970e6b2b",
+      "size": 48112,
+      "subdir": "win-64",
+      "timestamp": 1517331996269,
+      "version": "0.45.1"
     }
   }
 }

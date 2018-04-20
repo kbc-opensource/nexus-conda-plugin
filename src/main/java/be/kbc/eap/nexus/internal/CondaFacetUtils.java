@@ -6,12 +6,16 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.HashingOutputStream;
 import org.joda.time.DateTime;
 import org.sonatype.nexus.common.hash.HashAlgorithm;
+import org.sonatype.nexus.repository.storage.Asset;
+import org.sonatype.nexus.repository.storage.Bucket;
+import org.sonatype.nexus.repository.storage.StorageTx;
 import org.sonatype.nexus.repository.view.Content;
 import org.sonatype.nexus.repository.view.Payload;
 import org.sonatype.nexus.repository.view.payloads.StreamPayload;
 import org.sonatype.nexus.repository.view.payloads.StringPayload;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -19,6 +23,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import static org.sonatype.nexus.repository.storage.MetadataNodeEntityAdapter.P_NAME;
 
 
 public class CondaFacetUtils {
@@ -26,10 +31,22 @@ public class CondaFacetUtils {
     /**
      * Wrapper to pass in into {@link #createTempContent(Path, String, Writer)} to write out actual content.
      */
-    public interface Writer
-    {
+    public interface Writer {
         void write(OutputStream outputStream) throws IOException;
     }
+
+    /**
+     * 103    * Finds asset in given bucket by key.
+     * 104
+     */
+    @Nullable
+    public static Asset findAsset(final StorageTx tx,
+                                  final Bucket bucket,
+                                  final CondaPath mavenPath) {
+        // The conda path is stored in the asset 'name' field, which is indexed (the maven format-specific key is not).
+        return tx.findAssetWithProperty(P_NAME, mavenPath.getPath(), bucket);
+    }
+
 
     public static Content createTempContent(final Path path, final String contentType, final Writer writer) throws IOException {
         Map<HashAlgorithm, HashingOutputStream> hashingStreams = new HashMap<>();
@@ -47,8 +64,7 @@ public class CondaFacetUtils {
             hashCodes.put(entry.getKey(), entry.getValue().hash());
         }
         Content content = new Content(new StreamPayload(
-                new StreamPayload.InputStreamSupplier()
-                {
+                new StreamPayload.InputStreamSupplier() {
                     @Nonnull
                     @Override
                     public InputStream get() throws IOException {
@@ -86,8 +102,7 @@ public class CondaFacetUtils {
      */
     public static Content putWithHashes(final CondaFacet condaFacet,
                                         final CondaPath condaPath,
-                                        final Content content) throws IOException
-    {
+                                        final Content content) throws IOException {
         final Map<HashAlgorithm, HashCode> hashCodes = content.getAttributes().require(
                 Content.CONTENT_HASH_CODES_MAP, Content.T_CONTENT_HASH_CODES_MAP);
         final DateTime now = content.getAttributes().require(Content.CONTENT_LAST_MODIFIED, DateTime.class);

@@ -32,12 +32,12 @@ public class CondaRepoDataMerger {
 
 
         try {
-            InputStreamReader rdr = new InputStreamReader(inputStreams.get(0));
+            InputStreamReader rdr = new InputStreamReader(inputStreams.get(inputStreams.size()-1));
             JsonObject result = gson.fromJson(rdr, JsonObject.class);
             rdr.close();
 
-            int j = 1;
-            while (j < inputStreams.size()) {
+            int j = inputStreams.size()-2;
+            while (j >= 0) {
 
                 rdr = new InputStreamReader(inputStreams.get(j));
                 JsonObject otherResult = gson.fromJson(rdr, JsonObject.class);
@@ -49,7 +49,7 @@ public class CondaRepoDataMerger {
                     parentPackages.add(key.getKey(), key.getValue());
                 }
 
-                j++;
+                j--;
             }
 
 

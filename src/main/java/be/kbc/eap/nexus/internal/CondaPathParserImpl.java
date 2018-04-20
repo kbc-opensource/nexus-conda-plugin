@@ -45,6 +45,11 @@ public class CondaPathParserImpl
     @Nullable
     private CondaPath.Coordinates condaPathToCoordinates(final String pathString, final boolean caseSensitive) {
         String str = pathString;
+
+        if(str.endsWith(Constants.REPODATA_JSON)) {
+            return null;
+        }
+
         int vEndPos = str.lastIndexOf('/');
         if (vEndPos == -1) {
             return null;
@@ -60,7 +65,7 @@ public class CondaPathParserImpl
         String extension = "";
         if(parts.length>1) {
             version = parts[1];
-            build = parts[2];
+            build = parts[2].replace(".tar.bz2", "");
         }
 
         int nExtPos = fileName.lastIndexOf('.');

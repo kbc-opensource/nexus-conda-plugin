@@ -6,6 +6,7 @@ import be.kbc.eap.nexus.CondaPath;
 import be.kbc.eap.nexus.CondaPathParser;
 import org.sonatype.nexus.blobstore.api.Blob;
 import org.sonatype.nexus.common.collect.AttributesMap;
+import org.sonatype.nexus.common.collect.NestedAttributesMap;
 import org.sonatype.nexus.common.hash.HashAlgorithm;
 import org.sonatype.nexus.repository.FacetSupport;
 import org.sonatype.nexus.repository.Repository;
@@ -33,8 +34,8 @@ import static org.sonatype.nexus.repository.storage.MetadataNodeEntityAdapter.P_
 
 @Named
 public class CondaFacetImpl
-    extends FacetSupport
-    implements CondaFacet {
+        extends FacetSupport
+        implements CondaFacet {
 
 
     private final Map<String, CondaPathParser> condaPathParsers;
@@ -84,17 +85,14 @@ public class CondaFacetImpl
     @Override
     @TransactionalStoreBlob
     public Content put(final CondaPath path, final Payload content) throws IOException {
-        log.info("CondaFacetImpl - put - " + path.getPath() + " - " + content.getSize());
+        //log.info("CondaFacetImpl - put - " + path.getPath() + " - " + content.getSize());
         StorageFacet storageFacet = facet(StorageFacet.class);
-        log.info("Create temp blob");
         try (TempBlob tempBlob = storageFacet.createTempBlob(content, hashAlgorithms)) {
 
             log.info("call doPutContent");
             return doPutContent(path, tempBlob, content);
         }
-        finally{
-            log.info("Create temp blob finished");
-        }
+
     }
 
     @Override
@@ -107,8 +105,7 @@ public class CondaFacetImpl
             log.trace("DELETE {} : {}", getRepository().getName(), path.getPath());
             if (path.getCoordinates() != null) {
                 result = deleteArtifact(path, tx) || result;
-            }
-            else {
+            } else {
                 result = deleteFile(path, tx) || result;
             }
         }
@@ -148,12 +145,15 @@ public class CondaFacetImpl
 
 
     protected Content doPutContent(final CondaPath path, final TempBlob tempBlob, final Payload payload)
-            throws IOException
-    {
+            throws IOException {
         StorageTx tx = UnitOfWork.currentTx();
 
-        log.info("Get or create asset " + path.getPath());
-        Asset asset = getOrCreateAsset(getRepository(), path.getFileName(), CondaCoordinatesHelper.getGroup(path.getPath()), path.getFileName());
+        Asset asset = null;
+        if (path.getCoordinates() == null) {
+            asset = getOrCreateAsset(path, getRepository(), path.getFileName(), CondaCoordinatesHelper.getGroup(path.getPath()), path.getFileName());
+        } else {
+            asset = getOrCreateAsset(path, getRepository(), path.getCoordinates().getPackageName(), CondaCoordinatesHelper.getGroup(path.getPath()), path.getFileName());
+        }
 
         AttributesMap contentAttributes = null;
         if (payload instanceof Content) {
@@ -176,7 +176,7 @@ public class CondaFacetImpl
     }
 
     @TransactionalStoreMetadata
-    public Asset getOrCreateAsset(final Repository repository, final String componentName, final String componentGroup,
+    public Asset getOrCreateAsset(final CondaPath condaPath, final Repository repository, final String componentName, final String componentGroup,
                                   final String assetName) {
         final StorageTx tx = UnitOfWork.currentTx();
 
@@ -185,16 +185,37 @@ public class CondaFacetImpl
         Asset asset;
         if (component == null) {
             // CREATE
-            component = tx.createComponent(bucket, getRepository().getFormat())
-                    .group(componentGroup)
-                    .name(componentName);
+            if(condaPath.getCoordinates()!=null) {
+                component = tx.createComponent(bucket, getRepository().getFormat())
+                        .group(componentGroup)
+                        .name(componentName)
+                        .version(condaPath.getCoordinates().getVersion());
+            }
+            else {
+                component = tx.createComponent(bucket, getRepository().getFormat())
+                        .group(componentGroup)
+                        .name(componentName);
+            }
+
+            if(condaPath.getCoordinates()!=null) {
+                NestedAttributesMap componentAttributes = component.formatAttributes();
+                componentAttributes.set("packageName", condaPath.getCoordinates().getPackageName());
+                componentAttributes.set("version", condaPath.getCoordinates().getVersion());
+                componentAttributes.set("buildString", condaPath.getCoordinates().getBuildString());
+            }
 
             tx.saveComponent(component);
 
             asset = tx.createAsset(bucket, component);
+            if(condaPath.getCoordinates()!=null) {
+                NestedAttributesMap assetAttributes = asset.formatAttributes();
+                assetAttributes.set("packageName", condaPath.getCoordinates().getPackageName());
+                assetAttributes.set("version", condaPath.getCoordinates().getVersion());
+                assetAttributes.set("buildString", condaPath.getCoordinates().getBuildString());
+            }
+
             asset.name(assetName);
-        }
-        else {
+        } else {
             // UPDATE
             asset = tx.firstAsset(component);
         }

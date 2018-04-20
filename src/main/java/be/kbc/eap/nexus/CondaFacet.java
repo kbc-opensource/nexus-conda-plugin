@@ -26,6 +26,6 @@ public interface CondaFacet extends Facet {
     CondaPathParser getCondaPathParser();
 
 
-    Asset getOrCreateAsset(Repository repository, String componentName, String componentGroup, String assetName);
+    Asset getOrCreateAsset(CondaPath condaPath, Repository repository, String componentName, String componentGroup, String assetName);
 
 }

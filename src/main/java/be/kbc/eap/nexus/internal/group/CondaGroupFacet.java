@@ -73,7 +73,14 @@ public class CondaGroupFacet
         if (condaPath.isHash()) {
             return content; // hashes are recalculated whenever metadata is merged, so they're always fresh
         }
-        return !isStale(content) ? content : null;
+        boolean stale = isStale(content);
+        if(stale) {
+            log.info("Content is stale");
+        }
+        else {
+            log.info("Content is not stale");
+        }
+        return !stale ? content : null;
     }
 
     /**
@@ -122,6 +129,10 @@ public class CondaGroupFacet
                         (OutputStream outputStream) -> {
                             OutputStreamWriter bw = new OutputStreamWriter(outputStream);
                             log.info("Write " + result.length() + " chars to outputstream");
+                            int idx = result.indexOf("olefile-0.45.1-py27_0.tar.bz2");
+                            if(idx>0) {
+                                log.info("olefile 0.45.1: " + result.substring(idx, idx+2000));
+                            }
                             bw.write(result);
                             bw.flush();
                         }
@@ -156,6 +167,7 @@ public class CondaGroupFacet
      * Caches the merged content and it's Maven2 format required sha1/md5 hashes along.
      */
     private Content cache(final CondaPath condaPath, final Content content) throws IOException {
+
         return CondaFacetUtils.putWithHashes(condaFacet, condaPath, maintainCacheInfo(content));
     }
 

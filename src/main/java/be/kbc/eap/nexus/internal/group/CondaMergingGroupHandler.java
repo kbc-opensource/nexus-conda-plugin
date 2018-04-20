@@ -54,11 +54,11 @@ public class CondaMergingGroupHandler
         log.info("Pass through responses: " + passThroughResponses.size());
 
         // now check group-level cache to see if it's been invalidated by any updates
-        Content content = groupFacet.getCached(condaPath);
-        if (content != null) {
-            log.info("Serving cached content {} : {}", context.getRepository().getName(), condaPath.getPath());
-            return HttpResponses.ok(content);
-        }
+//        Content content = groupFacet.getCached(condaPath);
+//        if (content != null) {
+//            log.info("Serving cached content {} : {}", context.getRepository().getName(), condaPath.getPath());
+//            return HttpResponses.ok(content);
+//        }
 
         if (!condaPath.isHash()) {
             // this will fetch the remaining responses, thanks to the 'dispatched' tracking
@@ -79,7 +79,7 @@ public class CondaMergingGroupHandler
 
             // merge the individual responses and cache the result
             log.info("Call merge and cache");
-            content = groupFacet.mergeAndCache(condaPath, responses);
+            Content content = groupFacet.mergeAndCache(condaPath, responses);
             if (content != null) {
                 log.info("Responses merged {} : {}", context.getRepository().getName(), condaPath.getPath());
                 return HttpResponses.ok(content);

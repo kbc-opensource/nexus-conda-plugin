@@ -3,22 +3,6 @@
     "subdir": "noarch"
   },
   "packages": {
-    "affine-2.1.0-pyh128a3a6_1.tar.bz2": {
-      "build": "pyh128a3a6_1",
-      "build_number": 1,
-      "depends": [
-        "python"
-      ],
-      "license": "BSD 3-Clause",
-      "md5": "0240708ea8947eec2539e8021d783f39",
-      "name": "affine",
-      "noarch": "python",
-      "sha256": "4602fc9f8ea6170576fcbdff785a4e4a81d73712b1d66cda5a767d097ee28539",
-      "size": 14341,
-      "subdir": "noarch",
-      "timestamp": 1510000844780,
-      "version": "2.1.0"
-    },
     "alsa-lib-cos6-i686-1.1.0-hc30c76e_0.tar.bz2": {
       "build": "hc30c76e_0",
       "build_number": 0,
@@ -48,6 +32,38 @@
       "subdir": "noarch",
       "timestamp": 1505691508748,
       "version": "1.1.0"
+    },
+    "olefile-0.45.1-py27_0.tar.bz2": {
+      "build": "py27_0",
+      "build_number": 0,
+      "depends": [
+        "python >=2.7,<2.8.0a0"
+      ],
+      "license": "BSD License 2-Clause",
+      "license_family": "BSD",
+      "md5": "ba6c53859e7e4205c67bd188b27e10cf",
+      "name": "olefile",
+      "sha256": "90e696bbae765bd1bf95eabd1c9f9b8ac428c19743d3c172c5f6d3fc970e6b2b",
+      "size": 48112,
+      "subdir": "win-64",
+      "timestamp": 1517331996269,
+      "version": "0.45.1"
+    },
+    "affine-2.1.0-pyh128a3a6_1.tar.bz2": {
+      "build": "pyh128a3a6_1",
+      "build_number": 1,
+      "depends": [
+        "python"
+      ],
+      "license": "BSD 3-Clause",
+      "md5": "0240708ea8947eec2539e8021d783f39",
+      "name": "affine",
+      "noarch": "python",
+      "sha256": "4602fc9f8ea6170576fcbdff785a4e4a81d73712b1d66cda5a767d097ee28539",
+      "size": 14341,
+      "subdir": "noarch",
+      "timestamp": 1510000844780,
+      "version": "2.1.0"
     }
   }
 }
