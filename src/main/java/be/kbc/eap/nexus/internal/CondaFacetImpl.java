@@ -4,14 +4,12 @@ import be.kbc.eap.nexus.CondaFacet;
 import be.kbc.eap.nexus.CondaCoordinatesHelper;
 import be.kbc.eap.nexus.CondaPath;
 import be.kbc.eap.nexus.CondaPathParser;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import org.sonatype.nexus.blobstore.api.Blob;
 import org.sonatype.nexus.common.collect.AttributesMap;
 import org.sonatype.nexus.common.collect.NestedAttributesMap;
 import org.sonatype.nexus.common.hash.HashAlgorithm;
+import org.sonatype.nexus.common.text.Strings2;
 import org.sonatype.nexus.repository.FacetSupport;
 import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.cache.CacheInfo;
@@ -19,8 +17,10 @@ import org.sonatype.nexus.repository.config.Configuration;
 import org.sonatype.nexus.repository.storage.*;
 import org.sonatype.nexus.repository.transaction.*;
 import org.sonatype.nexus.repository.view.Content;
+import org.sonatype.nexus.repository.view.ContentTypes;
 import org.sonatype.nexus.repository.view.Payload;
 import org.sonatype.nexus.repository.view.payloads.BlobPayload;
+import org.sonatype.nexus.repository.view.payloads.StringPayload;
 import org.sonatype.nexus.transaction.UnitOfWork;
 
 import javax.annotation.Nonnull;
@@ -28,10 +28,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.sonatype.nexus.common.hash.HashAlgorithm.MD5;
@@ -161,6 +158,9 @@ public class CondaFacetImpl
         attributesMap.set("arch", indexRoot.get("arch").getAsString());
         attributesMap.set("build_number", indexRoot.get("build_number").getAsString());
         attributesMap.set("license", indexRoot.get("license").getAsString());
+        if(indexRoot.has("license_family")) {
+            attributesMap.set("license_family", indexRoot.get("license_family").getAsString());
+        }
         attributesMap.set("platform", indexRoot.get("platform").getAsString());
         attributesMap.set("subdir", indexRoot.get("subdir").getAsString());
         JsonArray depends = indexRoot.get("depends").getAsJsonArray();
@@ -335,15 +335,85 @@ public class CondaFacetImpl
         return content;
     }
 
-    private void rebuildRepoDataJson() {
+    @Override
+    @TransactionalStoreBlob
+    public void rebuildRepoDataJson() throws IOException {
         StorageTx tx = UnitOfWork.currentTx();
 
+        Map<String, List<JsonObject>> architectures = new HashMap<>();
+        architectures.put("noarch", new ArrayList<>());
+
+        // fill our list with all the components/assets and store the metadata to build our repodata.json
         final Bucket bucket = tx.findBucket(getRepository());
         for(Asset asset : tx.browseAssets(bucket)) {
             if(!asset.name().endsWith("repodata.json")) {
+                Component component = tx.findComponent(asset.componentId());
+                if(!architectures.containsKey(component.group())) {
+                    architectures.put(component.group(), new ArrayList<>());
+                }
+                List<JsonObject> artifacts = architectures.get(component.group());
                 NestedAttributesMap formatAttributes = asset.formatAttributes();
+                JsonObject artifact =new JsonObject();
+                artifact.addProperty("arch", formatAttributes.get("arch").toString());
+                artifact.addProperty("build_number", Integer.parseInt(formatAttributes.get("build_number").toString()));
+                artifact.addProperty("build", formatAttributes.get("buildString").toString());
+                artifact.addProperty("license", formatAttributes.get("license").toString());
+                if(formatAttributes.contains("license_family")) {
+                    artifact.addProperty("license_family", formatAttributes.get("license_family").toString());
+                }
+                artifact.addProperty("name", component.name());
+                artifact.addProperty("platform", formatAttributes.get("platform").toString());
+                artifact.addProperty("subdir", formatAttributes.get("subdir").toString());
+                artifact.addProperty("version", formatAttributes.get("version").toString());
 
+                String depends = formatAttributes.get("depends").toString();
+
+                JsonArray jDepends = new JsonArray();
+                if(!Strings2.isEmpty(depends)) {
+                    String[] parts = depends.split(",");
+                    for(String part : parts) {
+                        jDepends.add(new JsonPrimitive(part));
+                    }
+                }
+                artifact.add("depends", jDepends);
+                CondaPath condaPath = new CondaPath(asset.name(), null);
+                JsonObject parentArtifact = new JsonObject();
+                parentArtifact.add(condaPath.getFileName(), artifact);
+                artifacts.add(parentArtifact);
             }
         }
+
+        // now build the repodata.json files
+
+        Gson gson = new Gson();
+        for(String arch : architectures.keySet()) {
+
+            log.info("Building repodata.json for " + arch);
+
+            JsonObject root = new JsonObject();
+            JsonObject info = new JsonObject();
+            info.addProperty("subdir", arch);
+            root.add("info", info);
+            JsonObject packages = new JsonObject();
+
+            for(JsonObject artifact : architectures.get(arch)) {
+                Set<Map.Entry<String, JsonElement>> entries = artifact.entrySet();
+                for (Map.Entry<String, JsonElement> entry : entries) {
+                    log.info("Adding package " + entry.getKey());
+                    packages.add(entry.getKey(), entry.getValue());
+                }
+            }
+
+            root.add("packages", packages);
+
+            String payload = gson.toJson(root);
+
+            Content content = new Content(new StringPayload(payload, ContentTypes.TEXT_PLAIN));
+
+            put(new CondaPath(arch + "/repodata.json", null), content);
+        }
+
+
+
     }
 }

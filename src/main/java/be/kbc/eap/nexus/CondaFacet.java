@@ -2,7 +2,6 @@ package be.kbc.eap.nexus;
 
 import org.sonatype.nexus.repository.Facet;
 import org.sonatype.nexus.repository.Repository;
-import org.sonatype.nexus.repository.cache.CacheInfo;
 import org.sonatype.nexus.repository.storage.Asset;
 import org.sonatype.nexus.repository.view.Content;
 import org.sonatype.nexus.repository.view.Payload;
@@ -30,4 +29,5 @@ public interface CondaFacet extends Facet {
 
     Asset getOrCreateAsset(CondaPath condaPath, Repository repository, String componentName, String componentGroup, String assetName);
 
+    void rebuildRepoDataJson() throws IOException;
 }

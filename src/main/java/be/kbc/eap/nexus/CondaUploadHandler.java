@@ -65,7 +65,7 @@ public class CondaUploadHandler
             // store uploaded artifact
             responseData = createAssets(repository, basePath, componentUpload.getAssetUploads());
             // update metadata
-
+            facet.rebuildRepoDataJson();
         }
         finally {
             UnitOfWork.end();
