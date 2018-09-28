@@ -129,15 +129,23 @@ public class CondaGroupFacet
                         (OutputStream outputStream) -> {
                             OutputStreamWriter bw = new OutputStreamWriter(outputStream);
                             log.info("Write " + result.length() + " chars to outputstream");
-                            int idx = result.indexOf("olefile-0.45.1-py27_0.tar.bz2");
-                            if(idx>0) {
-                                log.info("olefile 0.45.1: " + result.substring(idx, idx+2000));
-                            }
+//                            int idx = result.indexOf("olefile-0.45.1-py27_0.tar.bz2");
+//                            if(idx>0) {
+//                                log.info("olefile 0.45.1: " + result.substring(idx, idx+2000));
+//                            }
                             bw.write(result);
                             bw.flush();
                         }
                 );
 
+                streams.stream().map(s -> {
+                    try {
+                        s.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return s;
+                });
             }
 
             if (content == null) {
@@ -167,8 +175,8 @@ public class CondaGroupFacet
      * Caches the merged content and it's Maven2 format required sha1/md5 hashes along.
      */
     private Content cache(final CondaPath condaPath, final Content content) throws IOException {
-
-        return CondaFacetUtils.putWithHashes(condaFacet, condaPath, maintainCacheInfo(content));
+        maintainCacheInfo(content.getAttributes());
+        return CondaFacetUtils.putWithHashes(condaFacet, condaPath, content);
     }
 
     /**

@@ -1,18 +1,20 @@
 package be.kbc.eap.nexus.internal;
 
+import be.kbc.eap.nexus.CondaCoordinatesHelper;
 import be.kbc.eap.nexus.CondaFacet;
 import be.kbc.eap.nexus.CondaPath;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashingOutputStream;
 import org.joda.time.DateTime;
+import org.sonatype.nexus.common.collect.AttributesMap;
 import org.sonatype.nexus.common.hash.HashAlgorithm;
-import org.sonatype.nexus.repository.storage.Asset;
-import org.sonatype.nexus.repository.storage.Bucket;
-import org.sonatype.nexus.repository.storage.StorageTx;
+import org.sonatype.nexus.repository.Repository;
+import org.sonatype.nexus.repository.storage.*;
 import org.sonatype.nexus.repository.view.Content;
 import org.sonatype.nexus.repository.view.Payload;
 import org.sonatype.nexus.repository.view.payloads.StreamPayload;
 import org.sonatype.nexus.repository.view.payloads.StringPayload;
+import org.sonatype.nexus.transaction.UnitOfWork;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,6 +25,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.util.Collections.singletonList;
+import static org.sonatype.nexus.repository.storage.ComponentEntityAdapter.P_GROUP;
+import static org.sonatype.nexus.repository.storage.ComponentEntityAdapter.P_VERSION;
 import static org.sonatype.nexus.repository.storage.MetadataNodeEntityAdapter.P_NAME;
 
 
@@ -33,6 +39,39 @@ public class CondaFacetUtils {
      */
     public interface Writer {
         void write(OutputStream outputStream) throws IOException;
+    }
+
+    @Nullable
+    public static Component findComponent(final StorageTx tx,
+                                          final Repository repository,
+                                          final CondaPath condaPath)
+    {
+        final CondaPath.Coordinates coordinates = condaPath.getCoordinates();
+        Query query = null;
+        if(coordinates == null) {
+            query = Query.builder()
+                    .where(P_GROUP).eq(CondaCoordinatesHelper.getGroup(condaPath.getPath()))
+                    .and(P_NAME).eq(condaPath.getFileName())
+                    .build();
+
+        }
+        else {
+            query = Query.builder()
+                    .where(P_GROUP).eq(CondaCoordinatesHelper.getGroup(condaPath.getPath()))
+                    .and(P_NAME).eq(coordinates.getPackageName())
+                    .and(P_VERSION).eq(coordinates.getVersion())
+                    .build();
+
+        }
+
+        final Iterable<Component> components = tx.findComponents(
+                query,
+                singletonList(repository)
+        );
+        if (components.iterator().hasNext()) {
+            return components.iterator().next();
+        }
+        return null;
     }
 
     /**
@@ -46,6 +85,12 @@ public class CondaFacetUtils {
         // The conda path is stored in the asset 'name' field, which is indexed (the maven format-specific key is not).
         return tx.findAssetWithProperty(P_NAME, mavenPath.getPath(), bucket);
     }
+
+    public static Map<HashAlgorithm, HashCode> getHashAlgorithmFromContent(final AttributesMap attributesMap) {
+        return attributesMap
+                .require(Content.CONTENT_HASH_CODES_MAP, Content.T_CONTENT_HASH_CODES_MAP);
+    }
+
 
 
     public static Content createTempContent(final Path path, final String contentType, final Writer writer) throws IOException {
@@ -107,6 +152,16 @@ public class CondaFacetUtils {
                 Content.CONTENT_HASH_CODES_MAP, Content.T_CONTENT_HASH_CODES_MAP);
         final DateTime now = content.getAttributes().require(Content.CONTENT_LAST_MODIFIED, DateTime.class);
         Content result = condaFacet.put(condaPath, content);
+        addHashes(condaFacet, condaPath, hashCodes, DateTime.now());
+        return result;
+    }
+
+    public static void addHashes(final CondaFacet condaFacet,
+                                 final CondaPath condaPath,
+                                 final Map<HashAlgorithm, HashCode> hashCodes,
+                                 final DateTime now)
+            throws IOException
+    {
         for (CondaPath.HashType hashType : CondaPath.HashType.values()) {
             final HashCode hashCode = hashCodes.get(hashType.getHashAlgorithm());
             if (hashCode != null) {
@@ -116,7 +171,6 @@ public class CondaFacetUtils {
                 condaFacet.put(condaPath.hash(hashType), hashContent);
             }
         }
-        return result;
     }
 
     /**

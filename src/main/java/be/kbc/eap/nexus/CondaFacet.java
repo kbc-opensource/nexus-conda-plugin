@@ -20,6 +20,8 @@ public interface CondaFacet extends Facet {
 
     Content put(CondaPath path, Payload content) throws IOException;
 
+    Content put(CondaPath path, Payload content, String indexJson) throws IOException;
+
     boolean delete(CondaPath... paths) throws IOException;
 
     @Nonnull

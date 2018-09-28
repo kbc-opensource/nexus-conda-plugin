@@ -184,7 +184,7 @@ public class CondaPath {
                         coordinates.getPackageName(),
                         coordinates.getVersion(),
                         coordinates.getBuildString(),
-                        coordinates.getExtension()
+                        coordinates.getExtension().substring(0, coordinates.getExtension().length() - hashSuffixLen)
                 );
             }
             return new CondaPath(
@@ -235,7 +235,7 @@ public class CondaPath {
                     coordinates.getPackageName(),
                     coordinates.getVersion(),
                     coordinates.getBuildString(),
-                    coordinates.getExtension()
+                    coordinates.getExtension() + "." + hashType.getExt()
             );
         }
         return new CondaPath(

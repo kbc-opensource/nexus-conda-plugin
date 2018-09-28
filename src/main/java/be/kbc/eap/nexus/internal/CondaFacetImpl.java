@@ -4,12 +4,17 @@ import be.kbc.eap.nexus.CondaFacet;
 import be.kbc.eap.nexus.CondaCoordinatesHelper;
 import be.kbc.eap.nexus.CondaPath;
 import be.kbc.eap.nexus.CondaPathParser;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.sonatype.nexus.blobstore.api.Blob;
 import org.sonatype.nexus.common.collect.AttributesMap;
 import org.sonatype.nexus.common.collect.NestedAttributesMap;
 import org.sonatype.nexus.common.hash.HashAlgorithm;
 import org.sonatype.nexus.repository.FacetSupport;
 import org.sonatype.nexus.repository.Repository;
+import org.sonatype.nexus.repository.cache.CacheInfo;
 import org.sonatype.nexus.repository.config.Configuration;
 import org.sonatype.nexus.repository.storage.*;
 import org.sonatype.nexus.repository.transaction.*;
@@ -23,6 +28,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -85,16 +91,22 @@ public class CondaFacetImpl
     @Override
     @TransactionalStoreBlob
     public Content put(final CondaPath path, final Payload content) throws IOException {
-        //log.info("CondaFacetImpl - put - " + path.getPath() + " - " + content.getSize());
+        log.info("CondaFacetImpl - put - " + path.getPath() + " - " + content.getSize());
+        return put(path, content, null);
+    }
+
+    @Override
+    @TransactionalStoreBlob
+    public Content put(final CondaPath path, final Payload content, String indexJson) throws IOException {
+        log.info("CondaFacetImpl - put - " + path.getPath() + " - " + content.getSize());
         StorageFacet storageFacet = facet(StorageFacet.class);
         try (TempBlob tempBlob = storageFacet.createTempBlob(content, hashAlgorithms)) {
 
             log.info("call doPutContent");
-            return doPutContent(path, tempBlob, content);
+            return doPutContent(path, tempBlob, content, indexJson);
         }
 
     }
-
     @Override
     @TransactionalDeleteBlob
     public boolean delete(CondaPath... paths) throws IOException {
@@ -143,8 +155,25 @@ public class CondaFacetImpl
         return condaPathParser;
     }
 
+    private void fillAttributesFromJson(String indexJson, NestedAttributesMap attributesMap) {
+        Gson gson = new Gson();
+        JsonObject indexRoot = gson.fromJson(indexJson, JsonObject.class);
+        attributesMap.set("arch", indexRoot.get("arch").getAsString());
+        attributesMap.set("build_number", indexRoot.get("build_number").getAsString());
+        attributesMap.set("license", indexRoot.get("license").getAsString());
+        attributesMap.set("platform", indexRoot.get("platform").getAsString());
+        attributesMap.set("subdir", indexRoot.get("subdir").getAsString());
+        JsonArray depends = indexRoot.get("depends").getAsJsonArray();
+        List<String> sDepends = new ArrayList<>();
 
-    protected Content doPutContent(final CondaPath path, final TempBlob tempBlob, final Payload payload)
+        for(JsonElement depend : depends) {
+            sDepends.add(depend.getAsString());
+        }
+
+        attributesMap.set("depends", String.join(",", sDepends));
+    }
+
+    protected Content doPutContent(final CondaPath path, final TempBlob tempBlob, final Payload payload, final String indexJson)
             throws IOException {
         StorageTx tx = UnitOfWork.currentTx();
 
@@ -159,7 +188,13 @@ public class CondaFacetImpl
         if (payload instanceof Content) {
             contentAttributes = ((Content) payload).getAttributes();
         }
+
         Content.applyToAsset(asset, Content.maintainLastModified(asset, contentAttributes));
+
+        if(indexJson != null) {
+            fillAttributesFromJson(indexJson, asset.formatAttributes());
+        }
+
         AssetBlob assetBlob = tx.setBlob(
                 asset,
                 path.getPath(),
@@ -172,6 +207,7 @@ public class CondaFacetImpl
         tx.saveAsset(asset);
 
         log.info("Convert asset to content");
+
         return toContent(asset, assetBlob.getBlob());
     }
 
@@ -181,10 +217,13 @@ public class CondaFacetImpl
         final StorageTx tx = UnitOfWork.currentTx();
 
         final Bucket bucket = tx.findBucket(getRepository());
-        Component component = tx.findComponentWithProperty(P_NAME, componentName, bucket);
+        log.info("Find component with name " + componentName + " and path: " + condaPath.getPath());
+
+        Component component = CondaFacetUtils.findComponent(tx, repository, condaPath);
         Asset asset;
         if (component == null) {
             // CREATE
+            log.info("Create new component and asset");
             if(condaPath.getCoordinates()!=null) {
                 component = tx.createComponent(bucket, getRepository().getFormat())
                         .group(componentGroup)
@@ -214,10 +253,23 @@ public class CondaFacetImpl
                 assetAttributes.set("buildString", condaPath.getCoordinates().getBuildString());
             }
 
-            asset.name(assetName);
+            asset.name(condaPath.getPath());
         } else {
             // UPDATE
-            asset = tx.firstAsset(component);
+            log.info("Component exists");
+            asset = tx.findAssetWithProperty(P_NAME, assetName);
+            if(asset == null) {
+                asset = tx.createAsset(bucket, component);
+                if(condaPath.getCoordinates()!=null) {
+                    NestedAttributesMap assetAttributes = asset.formatAttributes();
+                    assetAttributes.set("packageName", condaPath.getCoordinates().getPackageName());
+                    assetAttributes.set("version", condaPath.getCoordinates().getVersion());
+                    assetAttributes.set("buildString", condaPath.getCoordinates().getBuildString());
+                }
+
+                asset.name(condaPath.getPath());
+            }
+
         }
 
         asset.markAsDownloaded();
@@ -272,6 +324,7 @@ public class CondaFacetImpl
         Repository repository = getRepository();
         log.info("find Asset " + path.getPath() + " in repository " + repository.getName());
 
+
         return tx.findAssetWithProperty(P_NAME, path.getPath(), tx.findBucket(getRepository()));
     }
 
@@ -282,4 +335,15 @@ public class CondaFacetImpl
         return content;
     }
 
+    private void rebuildRepoDataJson() {
+        StorageTx tx = UnitOfWork.currentTx();
+
+        final Bucket bucket = tx.findBucket(getRepository());
+        for(Asset asset : tx.browseAssets(bucket)) {
+            if(!asset.name().endsWith("repodata.json")) {
+                NestedAttributesMap formatAttributes = asset.formatAttributes();
+
+            }
+        }
+    }
 }
