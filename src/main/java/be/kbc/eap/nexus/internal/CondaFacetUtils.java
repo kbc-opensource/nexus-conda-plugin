@@ -49,6 +49,7 @@ public class CondaFacetUtils {
         final CondaPath.Coordinates coordinates = condaPath.getCoordinates();
         Query query = null;
         if(coordinates == null) {
+
             query = Query.builder()
                     .where(P_GROUP).eq(CondaCoordinatesHelper.getGroup(condaPath.getPath()))
                     .and(P_NAME).eq(condaPath.getFileName())

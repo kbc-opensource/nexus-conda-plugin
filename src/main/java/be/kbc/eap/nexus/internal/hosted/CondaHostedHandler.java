@@ -55,10 +55,12 @@ public class CondaHostedHandler extends ComponentSupport implements Handler {
     }
 
     private Response doDelete(final CondaPath condaPath, final CondaFacet condaFacet) throws IOException {
+        log.info("Delete " + condaPath.getPath());
         boolean deleted = condaFacet.delete(condaPath);
         if(!deleted) {
             return HttpResponses.notFound(condaPath.getPath());
         }
+        condaFacet.rebuildRepoDataJson();
         return HttpResponses.noContent();
     }
 }

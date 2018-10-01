@@ -5,6 +5,7 @@ import be.kbc.eap.nexus.CondaPathParser;
 import be.kbc.eap.nexus.internal.CondaFacetImpl;
 import be.kbc.eap.nexus.internal.CondaFormat;
 import be.kbc.eap.nexus.internal.CondaSecurityFacet;
+import be.kbc.eap.nexus.internal.hosted.CondaHostedComponentMaintenanceFacet;
 import be.kbc.eap.nexus.internal.hosted.CondaHostedFacet;
 import be.kbc.eap.nexus.internal.hosted.CondaHostedHandler;
 import be.kbc.eap.nexus.internal.matcher.CondaPathMatcher;
@@ -90,7 +91,7 @@ public class CondaHostedRecipe
     ContentHeadersHandler contentHeadersHandler;
 
     @Inject
-    Provider<DefaultComponentMaintenanceImpl> componentMaintenanceFacet;
+    Provider<CondaHostedComponentMaintenanceFacet> componentMaintenanceFacet;
 
     @Inject
     @Named(CondaFormat.NAME)

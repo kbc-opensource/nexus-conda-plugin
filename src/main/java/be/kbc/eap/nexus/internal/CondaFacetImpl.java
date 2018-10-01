@@ -21,6 +21,7 @@ import org.sonatype.nexus.repository.view.ContentTypes;
 import org.sonatype.nexus.repository.view.Payload;
 import org.sonatype.nexus.repository.view.payloads.BlobPayload;
 import org.sonatype.nexus.repository.view.payloads.StringPayload;
+import org.sonatype.nexus.transaction.Transactional;
 import org.sonatype.nexus.transaction.UnitOfWork;
 
 import javax.annotation.Nonnull;
@@ -170,7 +171,7 @@ public class CondaFacetImpl
             sDepends.add(depend.getAsString());
         }
 
-        attributesMap.set("depends", String.join(",", sDepends));
+        attributesMap.set("depends", String.join(";", sDepends));
     }
 
     protected Content doPutContent(final CondaPath path, final TempBlob tempBlob, final Payload payload, final String indexJson)
@@ -256,9 +257,11 @@ public class CondaFacetImpl
             asset.name(condaPath.getPath());
         } else {
             // UPDATE
-            log.info("Component exists");
-            asset = tx.findAssetWithProperty(P_NAME, assetName);
+            log.info("Component exists: " + component.group() + " - " + component.name());
+            log.info("Find asset " + condaPath.getPath());
+            asset = tx.findAssetWithProperty(P_NAME, condaPath.getPath(), component);
             if(asset == null) {
+                log.info("Asset doesn't exist.  Create it");
                 asset = tx.createAsset(bucket, component);
                 if(condaPath.getCoordinates()!=null) {
                     NestedAttributesMap assetAttributes = asset.formatAttributes();
@@ -269,7 +272,9 @@ public class CondaFacetImpl
 
                 asset.name(condaPath.getPath());
             }
-
+            else {
+                log.info("Asset exists " + asset.name() + " - " + asset.size());
+            }
         }
 
         asset.markAsDownloaded();
@@ -336,7 +341,7 @@ public class CondaFacetImpl
     }
 
     @Override
-    @TransactionalStoreBlob
+    @Transactional
     public void rebuildRepoDataJson() throws IOException {
         StorageTx tx = UnitOfWork.currentTx();
 
@@ -348,6 +353,8 @@ public class CondaFacetImpl
         for(Asset asset : tx.browseAssets(bucket)) {
             if(!asset.name().endsWith("repodata.json")) {
                 Component component = tx.findComponent(asset.componentId());
+                if(component == null)
+                    continue;;
                 if(!architectures.containsKey(component.group())) {
                     architectures.put(component.group(), new ArrayList<>());
                 }
@@ -370,8 +377,9 @@ public class CondaFacetImpl
 
                 JsonArray jDepends = new JsonArray();
                 if(!Strings2.isEmpty(depends)) {
-                    String[] parts = depends.split(",");
+                    String[] parts = depends.split(";");
                     for(String part : parts) {
+                        log.info("Dependency: " + part);
                         jDepends.add(new JsonPrimitive(part));
                     }
                 }
@@ -385,7 +393,7 @@ public class CondaFacetImpl
 
         // now build the repodata.json files
 
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().disableHtmlEscaping().create();
         for(String arch : architectures.keySet()) {
 
             log.info("Building repodata.json for " + arch);
