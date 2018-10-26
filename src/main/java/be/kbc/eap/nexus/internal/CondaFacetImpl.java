@@ -372,7 +372,8 @@ public class CondaFacetImpl
                 artifact.addProperty("platform", formatAttributes.get("platform").toString());
                 artifact.addProperty("subdir", formatAttributes.get("subdir").toString());
                 artifact.addProperty("version", formatAttributes.get("version").toString());
-
+                artifact.addProperty("size", asset.size());
+                artifact.addProperty("md5", asset.getChecksum(HashAlgorithm.MD5).toString());
                 String depends = formatAttributes.get("depends").toString();
 
                 JsonArray jDepends = new JsonArray();
