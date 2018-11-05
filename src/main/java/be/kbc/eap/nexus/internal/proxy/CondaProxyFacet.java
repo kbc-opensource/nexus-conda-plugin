@@ -9,6 +9,7 @@ import org.sonatype.nexus.repository.proxy.ProxyFacetSupport;
 import org.sonatype.nexus.repository.storage.Asset;
 import org.sonatype.nexus.repository.storage.Bucket;
 import org.sonatype.nexus.repository.storage.StorageTx;
+import org.sonatype.nexus.repository.transaction.TransactionalTouchMetadata;
 import org.sonatype.nexus.repository.view.Content;
 import org.sonatype.nexus.repository.view.Context;
 import org.sonatype.nexus.transaction.UnitOfWork;
@@ -41,6 +42,7 @@ extends ProxyFacetSupport {
     }
 
     @Override
+    @TransactionalTouchMetadata
     protected void indicateVerified(Context context, Content content, CacheInfo cacheInfo) throws IOException {
         final StorageTx tx = UnitOfWork.currentTx();
         final Bucket bucket = tx.findBucket(getRepository());
