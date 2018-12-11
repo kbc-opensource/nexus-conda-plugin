@@ -1,6 +1,7 @@
 # Nexus repository Anaconda plugin
 
 Compatibility matrix
+---------------------------------------------
 | Plugin version | Nexus repository version |
 |----------------|--------------------------|
 | v1.0.2         | 3.11.0                   |
