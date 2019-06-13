@@ -4,7 +4,7 @@ Compatibility matrix
 ---------------------------------------------
 | Plugin version | Nexus repository version |
 |----------------|--------------------------|
-| v1.0.2         | 3.11.0                   |
+| v1.0.2         | 3.16.0                   |
 
 ### Build
 * Clone the project
@@ -21,7 +21,6 @@ Compatibility matrix
 * Stop nexus
   `service nexus stop`
   or
-  
     ```
     cd <nexus_dir>/bin
     ./nexus stop
@@ -51,7 +50,8 @@ This will cause the plugin to be loaded and started with each startup of Nexus R
 
 * Setup proxy, group and hosted repo's as you would normally do
 * To upload a package to conda use curl:
-  `curl -F conda.asset1.path=win-64/<package>.tar.bz2 -F "conda.asset1.index=<index.json" -F conda.asset1=@package.tar.bz2  https://<server>/service/rest/beta/components?repository=<repository-name>`
+  `curl -F conda.asset1.path=win-64/<package>.tar.bz2 -F "conda.asset1.index=<index.json" -F conda.asset1=@package.tar.bz2  https://<server>/service/rest/v1/components?repository=<repository-name>`
+  index.json contains the index.json file contained in the tar.bz2 file
 
 ## The Fine Print
 
