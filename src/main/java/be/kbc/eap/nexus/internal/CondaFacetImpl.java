@@ -360,8 +360,8 @@ public class CondaFacetImpl
                 }
                 List<JsonObject> artifacts = architectures.get(component.group());
                 NestedAttributesMap formatAttributes = asset.formatAttributes();
-                JsonObject artifact =new JsonObject();
-                artifact.addProperty("arch", formatAttributes.get("arch").toString());
+                JsonObject artifact = new JsonObject();
+                artifact.addProperty("arch", formatAttributes.get("arch", "noarch").toString());
                 artifact.addProperty("build_number", Integer.parseInt(formatAttributes.get("build_number").toString()));
                 artifact.addProperty("build", formatAttributes.get("buildString").toString());
                 artifact.addProperty("license", formatAttributes.get("license").toString());
