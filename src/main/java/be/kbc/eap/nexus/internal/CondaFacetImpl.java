@@ -156,7 +156,7 @@ public class CondaFacetImpl
     private void fillAttributesFromJson(String indexJson, NestedAttributesMap attributesMap) {
         Gson gson = new Gson();
         JsonObject indexRoot = gson.fromJson(indexJson, JsonObject.class);
-        attributesMap.set("arch", indexRoot.get("arch").getAsString());
+        attributesMap.set("arch", indexRoot.has("arch") ? indexRoot.get("arch").getAsString() : "noarch");
         attributesMap.set("build_number", indexRoot.get("build_number").getAsString());
         attributesMap.set("license", indexRoot.get("license").getAsString());
         if(indexRoot.has("license_family")) {
