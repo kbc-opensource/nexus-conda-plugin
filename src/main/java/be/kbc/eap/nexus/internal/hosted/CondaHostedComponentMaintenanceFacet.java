@@ -9,6 +9,7 @@ import org.sonatype.nexus.transaction.Transactional;
 
 import javax.inject.Named;
 import java.io.IOException;
+import java.util.Set;
 
 @Named
 public class CondaHostedComponentMaintenanceFacet
@@ -16,18 +17,21 @@ public class CondaHostedComponentMaintenanceFacet
 
     @Override
     @TransactionalDeleteBlob
-    protected void deleteComponentTx(EntityId componentId, boolean deleteBlobs) {
-        super.deleteComponentTx(componentId, deleteBlobs);
+    protected Set<String> deleteComponentTx(EntityId componentId, boolean deleteBlobs) {
+        Set<String> result = super.deleteComponentTx(componentId, deleteBlobs);
 
         afterDelete();
+
+        return result;
 
     }
 
     @Override
     @TransactionalDeleteBlob
-    protected void deleteAssetTx(EntityId assetId, boolean deleteBlob) {
-        super.deleteAssetTx(assetId, deleteBlob);
+    protected Set<String> deleteAssetTx(EntityId assetId, boolean deleteBlob) {
+        Set<String> result = super.deleteAssetTx(assetId, deleteBlob);
         afterDelete();
+        return result;
     }
 
 
