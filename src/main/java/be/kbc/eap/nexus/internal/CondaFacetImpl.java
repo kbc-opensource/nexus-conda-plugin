@@ -162,7 +162,7 @@ public class CondaFacetImpl
         if(indexRoot.has("license_family")) {
             attributesMap.set("license_family", indexRoot.get("license_family").getAsString());
         }
-        attributesMap.set("platform", indexRoot.get("platform").getAsString());
+        attributesMap.set("platform", indexRoot.has("platform") ? indexRoot.get("platform").getAsString() : "UNKNOWN");
         attributesMap.set("subdir", indexRoot.get("subdir").getAsString());
         JsonArray depends = indexRoot.get("depends").getAsJsonArray();
         List<String> sDepends = new ArrayList<>();
@@ -369,7 +369,7 @@ public class CondaFacetImpl
                     artifact.addProperty("license_family", formatAttributes.get("license_family").toString());
                 }
                 artifact.addProperty("name", component.name());
-                artifact.addProperty("platform", formatAttributes.get("platform").toString());
+                artifact.addProperty("platform", formatAttributes.get("platform", "UNKNOWN").toString());
                 artifact.addProperty("subdir", formatAttributes.get("subdir").toString());
                 artifact.addProperty("version", formatAttributes.get("version").toString());
                 artifact.addProperty("size", asset.size());
