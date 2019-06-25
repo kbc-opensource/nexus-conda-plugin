@@ -89,7 +89,6 @@ public class CondaFacetImpl
     @Override
     @TransactionalStoreBlob
     public Content put(final CondaPath path, final Payload content) throws IOException {
-        log.info("CondaFacetImpl - put - " + path.getPath() + " - " + content.getSize());
         return put(path, content, null);
     }
 
@@ -100,7 +99,6 @@ public class CondaFacetImpl
         StorageFacet storageFacet = facet(StorageFacet.class);
         try (TempBlob tempBlob = storageFacet.createTempBlob(content, hashAlgorithms)) {
 
-            log.info("call doPutContent");
             return doPutContent(path, tempBlob, content, indexJson);
         }
 
@@ -207,8 +205,6 @@ public class CondaFacetImpl
 
         tx.saveAsset(asset);
 
-        log.info("Convert asset to content");
-
         return toContent(asset, assetBlob.getBlob());
     }
 
@@ -218,13 +214,13 @@ public class CondaFacetImpl
         final StorageTx tx = UnitOfWork.currentTx();
 
         final Bucket bucket = tx.findBucket(getRepository());
-        log.info("Find component with name " + componentName + " and path: " + condaPath.getPath());
+        log.debug("Find component with name " + componentName + " and path: " + condaPath.getPath());
 
         Component component = CondaFacetUtils.findComponent(tx, repository, condaPath);
         Asset asset;
         if (component == null) {
             // CREATE
-            log.info("Create new component and asset");
+            log.debug("Create new component and asset");
             if(condaPath.getCoordinates()!=null) {
                 component = tx.createComponent(bucket, getRepository().getFormat())
                         .group(componentGroup)
@@ -257,8 +253,8 @@ public class CondaFacetImpl
             asset.name(condaPath.getPath());
         } else {
             // UPDATE
-            log.info("Component exists: " + component.group() + " - " + component.name());
-            log.info("Find asset " + condaPath.getPath());
+            log.debug("Component exists: " + component.group() + " - " + component.name());
+            log.debug("Find asset " + condaPath.getPath());
             asset = tx.findAssetWithProperty(P_NAME, condaPath.getPath(), component);
             if(asset == null) {
                 log.info("Asset doesn't exist.  Create it");
@@ -273,7 +269,7 @@ public class CondaFacetImpl
                 asset.name(condaPath.getPath());
             }
             else {
-                log.info("Asset exists " + asset.name() + " - " + asset.size());
+                log.debug("Asset exists " + asset.name() + " - " + asset.size());
             }
         }
 
@@ -336,7 +332,7 @@ public class CondaFacetImpl
     private Content toContent(final Asset asset, final Blob blob) {
         final Content content = new Content(new BlobPayload(blob, asset.requireContentType()));
         Content.extractFromAsset(asset, hashAlgorithms, content.getAttributes());
-        log.info("Convert asset to content - Content Size: " + content.getSize() + " - Asset size: " + asset.size().toString());
+        log.debug("Convert asset to content - Content Size: " + content.getSize() + " - Asset size: " + asset.size().toString());
         return content;
     }
 
@@ -352,6 +348,7 @@ public class CondaFacetImpl
         final Bucket bucket = tx.findBucket(getRepository());
         for(Asset asset : tx.browseAssets(bucket)) {
             if(!asset.name().endsWith("repodata.json")) {
+                log.debug("Processing " + asset.name());
                 Component component = tx.findComponent(asset.componentId());
                 if(component == null)
                     continue;;
@@ -362,7 +359,7 @@ public class CondaFacetImpl
                 NestedAttributesMap formatAttributes = asset.formatAttributes();
                 JsonObject artifact = new JsonObject();
                 artifact.addProperty("arch", formatAttributes.get("arch", "noarch").toString());
-                artifact.addProperty("build_number", Integer.parseInt(formatAttributes.get("build_number").toString()));
+                artifact.addProperty("build_number", Long.parseLong(formatAttributes.get("build_number").toString()));
                 artifact.addProperty("build", formatAttributes.get("buildString").toString());
                 artifact.addProperty("license", formatAttributes.get("license").toString());
                 if(formatAttributes.contains("license_family")) {
@@ -380,7 +377,6 @@ public class CondaFacetImpl
                 if(!Strings2.isEmpty(depends)) {
                     String[] parts = depends.split(";");
                     for(String part : parts) {
-                        log.info("Dependency: " + part);
                         jDepends.add(new JsonPrimitive(part));
                     }
                 }
@@ -397,7 +393,7 @@ public class CondaFacetImpl
         Gson gson = new GsonBuilder().disableHtmlEscaping().create();
         for(String arch : architectures.keySet()) {
 
-            log.info("Building repodata.json for " + arch);
+            log.debug("Building repodata.json for " + arch);
 
             JsonObject root = new JsonObject();
             JsonObject info = new JsonObject();
@@ -408,7 +404,7 @@ public class CondaFacetImpl
             for(JsonObject artifact : architectures.get(arch)) {
                 Set<Map.Entry<String, JsonElement>> entries = artifact.entrySet();
                 for (Map.Entry<String, JsonElement> entry : entries) {
-                    log.info("Adding package " + entry.getKey());
+                    log.debug("Adding package " + entry.getKey());
                     packages.add(entry.getKey(), entry.getValue());
                 }
             }

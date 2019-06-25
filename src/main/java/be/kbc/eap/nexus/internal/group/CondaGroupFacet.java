@@ -75,10 +75,10 @@ public class CondaGroupFacet
         }
         boolean stale = isStale(content);
         if(stale) {
-            log.info("Content is stale");
+            log.debug("Content is stale");
         }
         else {
-            log.info("Content is not stale");
+            log.debug("Content is not stale");
         }
         return !stale ? content : null;
     }
@@ -92,7 +92,7 @@ public class CondaGroupFacet
                                  final Map<Repository, Response> responses) throws IOException
     {
 
-        log.info("Merge and cache for " + condaPath.getPath());
+        log.debug("Merge and cache for " + condaPath.getPath());
 
         checkMergeHandled(condaPath);
         // we do not cache subordinates/hashes, they are created as side-effect of cache
@@ -128,7 +128,7 @@ public class CondaGroupFacet
                 content = CondaFacetUtils.createTempContent(path, ContentTypes.APPLICATION_JSON,
                         (OutputStream outputStream) -> {
                             OutputStreamWriter bw = new OutputStreamWriter(outputStream);
-                            log.info("Write " + result.length() + " chars to outputstream");
+                            log.debug("Write " + result.length() + " chars to outputstream");
 //                            int idx = result.indexOf("olefile-0.45.1-py27_0.tar.bz2");
 //                            if(idx>0) {
 //                                log.info("olefile 0.45.1: " + result.substring(idx, idx+2000));

@@ -39,7 +39,7 @@ public class CondaMergingGroupHandler
     {
         final CondaPath condaPath = context.getAttributes().require(CondaPath.class);
         final CondaGroupFacet groupFacet = context.getRepository().facet(CondaGroupFacet.class);
-        log.info("Incoming request for {} : {}", context.getRepository().getName(), condaPath.getPath());
+        log.debug("Incoming request for {} : {}", context.getRepository().getName(), condaPath.getPath());
 
         final List<Repository> members = groupFacet.members();
 
@@ -51,7 +51,7 @@ public class CondaMergingGroupHandler
             passThroughResponses = getAll(context, proxiesOrGroups, dispatched);
         }
 
-        log.info("Pass through responses: " + passThroughResponses.size());
+        log.debug("Pass through responses: " + passThroughResponses.size());
 
         // now check group-level cache to see if it's been invalidated by any updates
 //        Content content = groupFacet.getCached(condaPath);
@@ -64,7 +64,7 @@ public class CondaMergingGroupHandler
             // this will fetch the remaining responses, thanks to the 'dispatched' tracking
             Map<Repository, Response> remainingResponses = getAll(context, members, dispatched);
 
-            log.info("Remaining responses: " + remainingResponses.size());
+            log.debug("Remaining responses: " + remainingResponses.size());
             // merge the two sets of responses according to member order
             LinkedHashMap<Repository, Response> responses = new LinkedHashMap<>();
             for (Repository member : members) {
@@ -78,18 +78,18 @@ public class CondaMergingGroupHandler
             }
 
             // merge the individual responses and cache the result
-            log.info("Call merge and cache");
+            log.debug("Call merge and cache");
             Content content = groupFacet.mergeAndCache(condaPath, responses);
             if (content != null) {
-                log.info("Responses merged {} : {}", context.getRepository().getName(), condaPath.getPath());
+                log.debug("Responses merged {} : {}", context.getRepository().getName(), condaPath.getPath());
                 return HttpResponses.ok(content);
             }
-            log.info("Not found respone to merge {} : {}", context.getRepository().getName(), condaPath.getPath());
+            log.debug("Not found respone to merge {} : {}", context.getRepository().getName(), condaPath.getPath());
             return HttpResponses.notFound();
         }
         else {
             // hash should be available if corresponding content fetched. out of bound request?
-            log.info("Outbound request for hash {} : {}", context.getRepository().getName(), condaPath.getPath());
+            log.debug("Outbound request for hash {} : {}", context.getRepository().getName(), condaPath.getPath());
             return HttpResponses.notFound();
         }
     }
