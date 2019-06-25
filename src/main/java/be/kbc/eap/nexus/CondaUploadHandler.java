@@ -84,7 +84,7 @@ public class CondaUploadHandler
 
         for(AssetUpload asset: assetUploads) {
 
-            log.info("Processing asset of size " + asset.getPayload().getSize());
+            log.debug("Processing asset of size " + asset.getPayload().getSize());
             StringBuilder path = new StringBuilder(basePath);
             String assetPath = asset.getFields().get(PATH);
             if(!Strings2.isEmpty(assetPath)) {

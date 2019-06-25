@@ -23,7 +23,7 @@ public class CondaRepoDataMerger {
         if (inputStreams.size() == 0) return null;
 
 
-        log.info("Merge repodata for " +  inputStreams.size() + " input streams");
+        log.debug("Merge repodata for " +  inputStreams.size() + " input streams");
 
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
@@ -55,7 +55,6 @@ public class CondaRepoDataMerger {
 
             String jsonResult = gson.toJson(result);
 
-            log.info("Last part of JSON After merging: " + jsonResult.substring(jsonResult.length() - 10));
             return jsonResult;
 
 
