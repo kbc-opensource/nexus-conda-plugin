@@ -12,7 +12,7 @@
 
     <groupId>be.kbc.eap.nexus</groupId>
     <artifactId>nexus-conda-plugin</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 
     <packaging>bundle</packaging>
 
