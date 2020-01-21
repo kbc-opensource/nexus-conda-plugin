@@ -41,6 +41,7 @@ public class CondaRepoDataMerger {
 
                 rdr = new InputStreamReader(inputStreams.get(j));
                 JsonObject otherResult = gson.fromJson(rdr, JsonObject.class);
+                rdr.close();
 
                 JsonObject parentPackages = result.getAsJsonObject("packages");
                 JsonObject childPackages = otherResult.getAsJsonObject("packages");
