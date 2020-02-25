@@ -1,10 +1,11 @@
-# Nexus repository Anaconda plugin
+# Sonatype Nexus repository Anaconda plugin
 
 Compatibility matrix
 ---------------------------------------------
 | Plugin version | Nexus repository version |
 |----------------|--------------------------|
 | v1.0.4         | 3.15.0                   |
+| v1.0.6         | 3.20.0                   |
 
 ### Build
 * Clone the project
@@ -26,7 +27,7 @@ Compatibility matrix
     ./nexus stop
     ```
     
-* Copy the bundle into `<nexus_dir>/system/be/kbc/eap/nexus/nexus-conda-plugin/1.0.4/nexus-conda-plugin-1.0.4.jar`
+* Copy the bundle into `<nexus_dir>/system/be/kbc/eap/nexus/nexus-conda-plugin/1.0.6/nexus-conda-plugin-1.0.6.jar`
 * Make the following additions marked with + to `<nexus_dir>/system/org/sonatype/nexus/assemblies/nexus-core-feature/3.x.y/nexus-core-feature-3.x.y-features.xml`
    ```
          <feature prerequisite="false" dependency="false">nexus-repository-maven</feature>
@@ -35,7 +36,7 @@ Compatibility matrix
    ```
    And
    ```
-   + <feature name="nexus-conda-plugin" description="be.kbc.eap:nexus-conda-plugin" version="1.0.4">
+   + <feature name="nexus-conda-plugin" description="be.kbc.eap:nexus-conda-plugin" version="1.0.6">
    +    <details>be.kbc.eap.nexus:nexus-conda-plugin</details>
    +    <bundle>mvn:be.kbc.eap.nexus/nexus-conda-plugin/x.y.z</bundle>
    +    <bundle>mvn:com.google.code.gson/gson/2.3.1</bundle>
