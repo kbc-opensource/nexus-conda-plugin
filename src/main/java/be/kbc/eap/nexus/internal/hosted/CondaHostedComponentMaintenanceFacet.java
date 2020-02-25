@@ -17,13 +17,10 @@ public class CondaHostedComponentMaintenanceFacet
 
     @Override
     @TransactionalDeleteBlob
-    protected Set<String> deleteComponentTx(EntityId componentId, boolean deleteBlobs) {
-        Set<String> result = super.deleteComponentTx(componentId, deleteBlobs);
-
+    protected DeletionResult deleteComponentTx(EntityId componentId, boolean deleteBlobs) {
+        DeletionResult deletionResult = super.deleteComponentTx(componentId, deleteBlobs);
         afterDelete();
-
-        return result;
-
+        return deletionResult;
     }
 
     @Override
