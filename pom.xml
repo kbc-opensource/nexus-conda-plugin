@@ -7,12 +7,12 @@
     <parent>
         <groupId>org.sonatype.nexus.plugins</groupId>
         <artifactId>nexus-plugins</artifactId>
-        <version>3.20.1-01</version>
+        <version>3.29.2-02</version>
     </parent>
 
     <groupId>be.kbc.eap.nexus</groupId>
     <artifactId>nexus-conda-plugin</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
 
     <packaging>bundle</packaging>
 

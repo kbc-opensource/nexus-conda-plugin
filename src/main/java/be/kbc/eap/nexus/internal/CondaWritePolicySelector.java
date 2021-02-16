@@ -1,7 +1,7 @@
 package be.kbc.eap.nexus.internal;
 
+import org.sonatype.nexus.repository.config.WritePolicy;
 import org.sonatype.nexus.repository.storage.Asset;
-import org.sonatype.nexus.repository.storage.WritePolicy;
 import org.sonatype.nexus.repository.storage.WritePolicySelector;
 
 public class CondaWritePolicySelector implements WritePolicySelector {
