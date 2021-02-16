@@ -18,8 +18,8 @@ Ext.define('NX.condaui.util.CondaRepositoryUrls', {
         'NX.util.Url'
     ]
 }, function(self) {
-    NX.coreui.util.RepositoryUrls.addRepositoryUrlStrategy('conda', function (assetModel) {
-        var repositoryName = assetModel.get('repositoryName'), assetName = assetModel.get('name');
+    NX.coreui.util.RepositoryUrls.addRepositoryUrlStrategy('conda', function (me, assetModel) {
+        var repositoryName = assetModel.get('repositoryName'), assetName = me.getAssetName(assetModel);
         return NX.util.Url.asLink(NX.util.Url.baseUrl + '/repository/' + repositoryName + '/' + assetName, assetName);
     });
 });
