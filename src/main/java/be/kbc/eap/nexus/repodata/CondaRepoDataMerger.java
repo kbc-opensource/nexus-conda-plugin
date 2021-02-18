@@ -36,6 +36,8 @@ public class CondaRepoDataMerger {
             JsonObject result = gson.fromJson(rdr, JsonObject.class);
             rdr.close();
 
+            JsonObject parentPackages = result.getAsJsonObject("packages");
+
             int j = inputStreams.size()-2;
             while (j >= 0) {
 
@@ -43,20 +45,17 @@ public class CondaRepoDataMerger {
                 JsonObject otherResult = gson.fromJson(rdr, JsonObject.class);
                 rdr.close();
 
-                JsonObject parentPackages = result.getAsJsonObject("packages");
                 JsonObject childPackages = otherResult.getAsJsonObject("packages");
 
                 for (Map.Entry<String, JsonElement> key : childPackages.entrySet()) {
+
                     parentPackages.add(key.getKey(), key.getValue());
                 }
 
                 j--;
             }
 
-
-            String jsonResult = gson.toJson(result);
-
-            return jsonResult;
+            return gson.toJson(result);
 
 
         } catch (IOException e) {

@@ -124,19 +124,36 @@ public class CondaGroupFacet
                     }
                     return null;
                 }).collect(Collectors.toList());
-                String result = repoDataMerger.mergeRepoDataFiles(streams);
-                content = CondaFacetUtils.createTempContent(path, ContentTypes.APPLICATION_JSON,
-                        (OutputStream outputStream) -> {
-                            OutputStreamWriter bw = new OutputStreamWriter(outputStream);
-                            log.debug("Write " + result.length() + " chars to outputstream");
+                if(streams.size() == 1) {
+                    content = CondaFacetUtils.createTempContent(path, ContentTypes.APPLICATION_JSON,
+                            (OutputStream outputStream) -> {
+                                OutputStreamWriter bw = new OutputStreamWriter(outputStream);
+                                InputStreamReader isr = new InputStreamReader(streams.get(0));
+                                char[] buf = new char[8192];
+                                int length;
+                                while((length = isr.read(buf)) > 0) {
+                                    bw.write(buf, 0, length);
+                                }
+                                bw.flush();
+                            }
+                    );
+                }
+                else {
+                    String result = repoDataMerger.mergeRepoDataFiles(streams);
+                    content = CondaFacetUtils.createTempContent(path, ContentTypes.APPLICATION_JSON,
+                            (OutputStream outputStream) -> {
+                                OutputStreamWriter bw = new OutputStreamWriter(outputStream);
+                                log.debug("Write " + result.length() + " chars to outputstream");
 //                            int idx = result.indexOf("olefile-0.45.1-py27_0.tar.bz2");
 //                            if(idx>0) {
 //                                log.info("olefile 0.45.1: " + result.substring(idx, idx+2000));
 //                            }
-                            bw.write(result);
-                            bw.flush();
-                        }
-                );
+                                bw.write(result);
+                                bw.flush();
+                            }
+                    );
+                }
+
 
                 streams.stream().map(s -> {
                     try {
