@@ -6,6 +6,7 @@ Compatibility matrix
 |----------------|--------------------------|
 | v1.0.4         | 3.15.0                   |
 | v1.0.6         | 3.20.0                   |
+| v1.0.7         | 3.29.0                   |
 
 ### Build
 * Clone the project
@@ -36,7 +37,7 @@ Compatibility matrix
    ```
    And
    ```
-   + <feature name="nexus-conda-plugin" description="be.kbc.eap:nexus-conda-plugin" version="1.0.6">
+   + <feature name="nexus-conda-plugin" description="be.kbc.eap:nexus-conda-plugin" version="1.0.7">
    +    <details>be.kbc.eap.nexus:nexus-conda-plugin</details>
    +    <bundle>mvn:be.kbc.eap.nexus/nexus-conda-plugin/x.y.z</bundle>
    +    <bundle>mvn:com.google.code.gson/gson/2.3.1</bundle>
