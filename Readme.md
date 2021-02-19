@@ -28,7 +28,8 @@ Compatibility matrix
     ./nexus stop
     ```
     
-* Copy the bundle into `<nexus_dir>/system/be/kbc/eap/nexus/nexus-conda-plugin/1.0.6/nexus-conda-plugin-1.0.6.jar`
+* Copy the bundle into `<nexus_dir>/system/be/kbc/eap/nexus/nexus-conda-plugin/1.0.7/nexus-conda-plugin-1.0.7.jar`
+* Remove all occurences of existing conda plugin in the feature xml files in the installation directory of Nexus  
 * Make the following additions marked with + to `<nexus_dir>/system/org/sonatype/nexus/assemblies/nexus-core-feature/3.x.y/nexus-core-feature-3.x.y-features.xml`
    ```
          <feature prerequisite="false" dependency="false">nexus-repository-maven</feature>
