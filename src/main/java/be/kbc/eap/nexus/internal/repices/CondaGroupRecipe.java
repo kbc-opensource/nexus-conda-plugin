@@ -14,7 +14,6 @@ import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.Type;
 import org.sonatype.nexus.repository.attributes.AttributesFacet;
 import org.sonatype.nexus.repository.group.GroupHandler;
-import org.sonatype.nexus.repository.http.HttpHandlers;
 import org.sonatype.nexus.repository.http.PartialFetchHandler;
 import org.sonatype.nexus.repository.security.SecurityHandler;
 import org.sonatype.nexus.repository.storage.StorageFacet;

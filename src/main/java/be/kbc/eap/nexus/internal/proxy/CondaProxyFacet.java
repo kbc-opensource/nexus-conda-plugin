@@ -29,7 +29,7 @@ extends ProxyFacetSupport {
     @Override
     protected Content getCachedContent(Context context) throws IOException {
         final CondaPath condaPath = context.getAttributes().require(CondaPath.class);
-        log.info("Retrieve " + condaPath.getPath() + " from storage");
+        log.info("Retrieve cached content for: " + condaPath.getPath() + " from storage");
         return getCondaFacet().get(condaPath);
     }
 
@@ -48,11 +48,10 @@ extends ProxyFacetSupport {
         final Bucket bucket = tx.findBucket(getRepository());
         final CondaPath condaPath = context.getAttributes().require(CondaPath.class);
 
-
         // by EntityId
         Asset asset = Content.findAsset(tx, bucket, content);
         if (asset == null) {
-        // by format coordinates
+            // by format coordinates
             asset = findAsset(tx, bucket, condaPath);
         }
         if (asset == null) {
@@ -98,6 +97,4 @@ extends ProxyFacetSupport {
         }
         return super.fetch(context, stale);
     }
-
-
 }

@@ -94,8 +94,6 @@ public class CondaUploadHandler
                 path.append(assetPath);
             }
 
-
-
             CondaPath condaPath = parser.parsePath(path.toString());
             String indexJson = asset.getFields().get(INDEX);
 

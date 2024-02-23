@@ -3,18 +3,19 @@ package be.kbc.eap.nexus.internal;
 import be.kbc.eap.nexus.CondaCoordinatesHelper;
 import be.kbc.eap.nexus.CondaFacet;
 import be.kbc.eap.nexus.CondaPath;
+import com.github.luben.zstd.ZstdOutputStream;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashingOutputStream;
 import org.joda.time.DateTime;
 import org.sonatype.nexus.common.collect.AttributesMap;
 import org.sonatype.nexus.common.hash.HashAlgorithm;
+import org.sonatype.nexus.common.io.InputStreamSupplier;
 import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.storage.*;
 import org.sonatype.nexus.repository.view.Content;
 import org.sonatype.nexus.repository.view.Payload;
 import org.sonatype.nexus.repository.view.payloads.StreamPayload;
 import org.sonatype.nexus.repository.view.payloads.StringPayload;
-import org.sonatype.nexus.transaction.UnitOfWork;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -110,7 +111,7 @@ public class CondaFacetUtils {
             hashCodes.put(entry.getKey(), entry.getValue().hash());
         }
         Content content = new Content(new StreamPayload(
-                new StreamPayload.InputStreamSupplier() {
+                new InputStreamSupplier() {
                     @Nonnull
                     @Override
                     public InputStream get() throws IOException {
@@ -124,6 +125,57 @@ public class CondaFacetUtils {
         content.getAttributes().set(Content.CONTENT_HASH_CODES_MAP, hashCodes);
         mayAddETag(content);
         return content;
+    }
+
+//    /**
+//     * Compresses the given data with Zstandard (.zst) and creates a Content object.
+//     *
+//     * @param data     The data to compress and write.
+//     * @param mimeType The MIME type of the content.
+//     * @return Content The Content object representing the compressed file.
+//     * @throws IOException if an I/O error occurs.
+//     */
+//    public static Content createZstdContent(byte[] data, String mimeType) throws IOException {
+//        // Compress data using Zstandard
+//        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+//        try (ZstdOutputStream zos = new ZstdOutputStream(byteArrayOutputStream)) {
+//            zos.write(data);
+//        }
+//        byte[] compressedData = byteArrayOutputStream.toByteArray();
+//
+//        Content content = getContent(mimeType, compressedData);
+//
+//        AttributesMap attributes = content.getAttributes();
+//        attributes.set(Content.CONTENT_LAST_MODIFIED, System.currentTimeMillis());
+//
+//        return content;
+//    }
+
+    private static Content getContent(String mimeType, byte[] compressedData) {
+        Payload payload = new Payload() {
+            @Override
+            public InputStream openInputStream() {
+                return new ByteArrayInputStream(compressedData);
+            }
+
+            @Override
+            public long getSize() {
+                return compressedData.length;
+            }
+
+            @Nullable
+            @Override
+            public String getContentType() {
+                return mimeType;
+            }
+
+            @Override
+            public void close() {
+                // No action needed for ByteArrayInputStream
+            }
+        };
+
+        return new Content(payload);
     }
 
     /**

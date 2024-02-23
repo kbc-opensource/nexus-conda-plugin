@@ -2,11 +2,19 @@
 
 Compatibility matrix
 ---------------------------------------------
-| Plugin version | Nexus repository version |
-|----------------|--------------------------|
-| v1.0.4         | 3.15.0                   |
-| v1.0.6         | 3.20.0                   |
-| v1.0.7         | 3.29.0                   |
+| Plugin version | Nexus repository version | Changes                                |
+|----------------|--------------------------|----------------------------------------|
+| v1.0.4         | 3.15.0                   |                                        |
+| v1.0.6         | 3.20.0                   |                                        |
+| v1.0.7         | 3.29.0                   |                                        |
+| v1.0.8         | 3.29.0                   |                                        |
+| ~~v1.0.9~~     | 3.38.1                   |                                        |
+| v1.1.0         | 3.38.1                   |                                        |
+| ~~v1.2.0~~     | 3.38.1                   |                                        |
+| v1.3.0         | 3.38.1                   |                                        |
+| v1.4.0         | 3.54.1                   |                                        |
+| v1.4.1         | 3.54.1                   | Adds API routes for Conda repositories |
+| v1.5.0         | 3.61.0                   | Adds Support for ZST files             |
 
 ### Build
 * Clone the project
@@ -15,39 +23,29 @@ Compatibility matrix
 * Build the plugin:
   ```
   cd nexus-conda-plugin
-  mvn clean install
+  mvn clean install -PbuildKar
   ```
+
+* This will create a kar file:  `target/nexus-conda-plugin-1.5.0-bundle.kar`
   
 ### Install
 
 * Stop nexus
-  `service nexus stop`
+  `systemctl stop nexus`
   or
     ```
     cd <nexus_dir>/bin
     ./nexus stop
     ```
     
-* Copy the bundle into `<nexus_dir>/system/be/kbc/eap/nexus/nexus-conda-plugin/1.0.7/nexus-conda-plugin-1.0.7.jar`
-* Remove all occurences of existing conda plugin in the feature xml files in the installation directory of Nexus  
-* Make the following additions marked with + to `<nexus_dir>/system/org/sonatype/nexus/assemblies/nexus-core-feature/3.x.y/nexus-core-feature-3.x.y-features.xml`
-   ```
-         <feature prerequisite="false" dependency="false">nexus-repository-maven</feature>
-   +     <feature prerequisite="false" dependency="false">nexus-conda-plugin</feature>
-     </feature>
-   ```
-   And
-   ```
-   + <feature name="nexus-conda-plugin" description="be.kbc.eap:nexus-conda-plugin" version="1.0.7">
-   +    <details>be.kbc.eap.nexus:nexus-conda-plugin</details>
-   +    <bundle>mvn:be.kbc.eap.nexus/nexus-conda-plugin/x.y.z</bundle>
-   +    <bundle>mvn:com.google.code.gson/gson/2.3.1</bundle>
-   + </feature>
-    </features>
-   ```
- 
+* Copy the bundle into `<nexus_dir>/deploy`
+  
+This will cause the plugin to be loaded and started with each startup of Nexus Repository.  
 
-This will cause the plugin to be loaded and started with each startup of Nexus Repository.
+* Also make sure that you disable all `nexus-repository-conda` plugins, in every xml of Nexus. Otherwise Nexus will crash. 
+Locations of xml's:
+`<nexus_dir>/system/org/sonatype/nexus/assemblies`
+`<nexus_dir>/system/com/sonatype/nexus/assemblies/`
 
 ## Usage
 
@@ -59,7 +57,7 @@ This will cause the plugin to be loaded and started with each startup of Nexus R
 ## The Fine Print
 
 It is worth noting that this is **NOT SUPPORTED** by Sonatype, and is a contribution of Bart Devriendt at KBC Belgium
-plus us to the open source community (read: you!)
+to the open source community (read: you!)
 
 Remember:
 

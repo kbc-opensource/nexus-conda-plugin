@@ -1,12 +1,10 @@
 package be.kbc.eap.nexus.internal.repices;
 
-import be.kbc.eap.nexus.CondaFacet;
 import be.kbc.eap.nexus.CondaPathParser;
 import be.kbc.eap.nexus.internal.CondaFacetImpl;
 import be.kbc.eap.nexus.internal.CondaFormat;
 import be.kbc.eap.nexus.internal.CondaSecurityFacet;
 import be.kbc.eap.nexus.internal.hosted.CondaHostedComponentMaintenanceFacet;
-import be.kbc.eap.nexus.internal.hosted.CondaHostedFacet;
 import be.kbc.eap.nexus.internal.hosted.CondaHostedHandler;
 import be.kbc.eap.nexus.internal.matcher.CondaPathMatcher;
 import org.sonatype.nexus.repository.Format;
@@ -14,10 +12,9 @@ import org.sonatype.nexus.repository.RecipeSupport;
 import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.Type;
 import org.sonatype.nexus.repository.attributes.AttributesFacet;
+import org.sonatype.nexus.repository.content.search.SearchFacet;
 import org.sonatype.nexus.repository.http.PartialFetchHandler;
-import org.sonatype.nexus.repository.search.SearchFacet;
 import org.sonatype.nexus.repository.security.SecurityHandler;
-import org.sonatype.nexus.repository.storage.DefaultComponentMaintenanceImpl;
 import org.sonatype.nexus.repository.storage.StorageFacet;
 import org.sonatype.nexus.repository.storage.UnitOfWorkHandler;
 import org.sonatype.nexus.repository.types.HostedType;
@@ -29,7 +26,6 @@ import org.sonatype.nexus.repository.view.handlers.ConditionalRequestHandler;
 import org.sonatype.nexus.repository.view.handlers.ContentHeadersHandler;
 import org.sonatype.nexus.repository.view.handlers.ExceptionHandler;
 import org.sonatype.nexus.repository.view.handlers.TimingHandler;
-import org.sonatype.nexus.repository.view.matchers.AlwaysMatcher;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -119,7 +115,8 @@ public class CondaHostedRecipe
     private ViewFacet configure(final ConfigurableViewFacet facet) {
         Router.Builder builder = new Router.Builder();
 
-        builder.route(new Route.Builder().matcher(new CondaPathMatcher(condaPathParser))
+        builder.route(new Route.Builder()
+                .matcher(new CondaPathMatcher(condaPathParser))
                 .handler(timingHandler)
                 .handler(securityHandler)
                 .handler(exceptionHandler)

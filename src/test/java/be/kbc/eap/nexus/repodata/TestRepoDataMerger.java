@@ -46,8 +46,6 @@ public class TestRepoDataMerger {
         String expectedResult = loadExpectedFile("repodata-expected.json");
 
         Assert.assertEquals(expectedResult, jsonResult);
-
-
     }
 
 }

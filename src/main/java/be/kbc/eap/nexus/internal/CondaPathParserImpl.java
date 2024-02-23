@@ -42,6 +42,11 @@ public class CondaPathParserImpl
         return path.main().getFileName().equalsIgnoreCase(Constants.REPODATA_JSON);
     }
 
+    @Override
+    public boolean isRepodataZst(CondaPath path) {
+        return path.main().getFileName().equalsIgnoreCase(Constants.REPODATA_JSON_ZST);
+    }
+
     @Nullable
     private CondaPath.Coordinates condaPathToCoordinates(final String pathString, final boolean caseSensitive) {
         String str = pathString;

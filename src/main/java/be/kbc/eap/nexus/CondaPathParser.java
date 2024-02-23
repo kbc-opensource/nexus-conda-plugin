@@ -21,4 +21,6 @@ public interface CondaPathParser {
      * Returns {@code true} if passed in path represent repository data json.
      */
     boolean isRepodata(CondaPath path);
+
+    boolean isRepodataZst(CondaPath path);
 }
