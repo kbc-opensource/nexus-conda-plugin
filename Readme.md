@@ -14,38 +14,38 @@ Compatibility matrix
 | v1.3.0         | 3.38.1                   |                                        |
 | v1.4.0         | 3.54.1                   |                                        |
 | v1.4.1         | 3.54.1                   | Adds API routes for Conda repositories |
-| v1.5.0         | 3.61.0                   | Adds Support for ZST files             |
+| v1.6.0         | 3.61.0                   | Adds Support for ZST files             |
 
 ### Build
 * Clone the project
   `git clone ...`
-  
+
 * Build the plugin:
   ```
   cd nexus-conda-plugin
   mvn clean install -PbuildKar
   ```
 
-* This will create a kar file:  `target/nexus-conda-plugin-1.5.0-bundle.kar`
-  
+* This will create a kar file:  `target/nexus-conda-plugin-1.6.0-bundle.kar`
+
 ### Install
 
 * Stop nexus
-  `systemctl stop nexus`
+  `dzdo systemctl stop nexus`
   or
     ```
     cd <nexus_dir>/bin
     ./nexus stop
     ```
-    
-* Copy the bundle into `<nexus_dir>/deploy`
-  
-This will cause the plugin to be loaded and started with each startup of Nexus Repository.  
 
-* Also make sure that you disable all `nexus-repository-conda` plugins, in every xml of Nexus. Otherwise Nexus will crash. 
-Locations of xml's:
-`<nexus_dir>/system/org/sonatype/nexus/assemblies`
-`<nexus_dir>/system/com/sonatype/nexus/assemblies/`
+* Copy the bundle into `<nexus_dir>/deploy`
+
+This will cause the plugin to be loaded and started with each startup of Nexus Repository.
+
+* Also make sure that you disable all `nexus-repository-conda` plugins, in every xml of Nexus. Otherwise Nexus will crash.
+  Locations of xml's:
+  `<nexus_dir>/system/org/sonatype/nexus/assemblies`
+  `<nexus_dir>/system/com/sonatype/nexus/assemblies/`
 
 ## Usage
 

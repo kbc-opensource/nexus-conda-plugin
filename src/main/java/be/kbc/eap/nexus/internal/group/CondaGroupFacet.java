@@ -242,6 +242,15 @@ public class CondaGroupFacet
                                 }
                             });
                 }
+
+                streams.stream().map(s -> {
+                    try {
+                        s.close();
+                    } catch (IOException e) {
+                        //e.printStackTrace();
+                    }
+                    return s;
+                });
             }
 
             if (content == null) {
