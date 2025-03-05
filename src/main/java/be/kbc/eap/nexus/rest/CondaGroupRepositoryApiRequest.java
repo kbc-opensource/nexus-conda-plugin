@@ -1,6 +1,6 @@
 package be.kbc.eap.nexus.rest;
 
-import be.kbc.eap.nexus.internal.CondaFormat;
+import be.kbc.eap.nexus.CondaFormat;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

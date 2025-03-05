@@ -5,24 +5,28 @@ import org.sonatype.nexus.common.hash.HashAlgorithm;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@Immutable
 public class CondaPath {
 
     public enum HashType
     {
         SHA1("sha1", HashAlgorithm.SHA1),
-
+        SHA256("sha256", HashAlgorithm.SHA256),
+        SHA512("sha512", HashAlgorithm.SHA512),
         MD5("md5", HashAlgorithm.MD5);
+
 
         /**
          * {@link HashAlgorithm}s corresponding to {@link HashType}s.
          */
         public static final List<HashAlgorithm> ALGORITHMS = ImmutableList
-                .of(SHA1.getHashAlgorithm(), MD5.getHashAlgorithm());
+                .of(SHA1.getHashAlgorithm(), MD5.getHashAlgorithm(), SHA256.getHashAlgorithm(), SHA512.getHashAlgorithm());
 
         private final String ext;
 
@@ -47,6 +51,8 @@ public class CondaPath {
     public static class Coordinates
     {
 
+        private final String namespace;
+
 
         private final String packageName;
 
@@ -57,12 +63,14 @@ public class CondaPath {
         private final String extension;
 
 
-        public Coordinates(final String packageName,
+        public Coordinates(final String namespace,
+                           final String packageName,
                            final String version,
                            final String buildString,
                            final String extension)
 
         {
+            this.namespace = namespace;
             this.packageName = checkNotNull(packageName);
             this.version = checkNotNull(version);
             this.buildString = checkNotNull(buildString);
@@ -88,6 +96,9 @@ public class CondaPath {
         public String getExtension() {
             return extension;
         }
+
+        @Nonnull
+        public String getNamespace() { return namespace; }
     }
 
 
@@ -181,11 +192,11 @@ public class CondaPath {
             Coordinates mainCoordinates = null;
             if (coordinates != null) {
                 mainCoordinates = new Coordinates(
+                        coordinates.getNamespace(),
                         coordinates.getPackageName(),
                         coordinates.getVersion(),
                         coordinates.getBuildString(),
-                        coordinates.getExtension().substring(0, coordinates.getExtension().length() - hashSuffixLen)
-                );
+                        coordinates.getExtension().substring(0, coordinates.getExtension().length() - hashSuffixLen));
             }
             return new CondaPath(
                     path.substring(0, path.length() - hashSuffixLen),
@@ -221,25 +232,29 @@ public class CondaPath {
                 '}';
     }
 
+    @Nonnull
+    public CondaPath hash(final HashAlgorithm hashType) {
+        return hash(hashType.name());
+    }
 
     /**
      * Returns path of passed in hash type that is subordinate of this path. This path cannot be hash.
      */
     @Nonnull
-    public CondaPath hash(final HashType hashType) {
-        checkNotNull(hashType);
-        checkArgument(this.hashType == null, "This path is already a hash: %s", this);
+    public CondaPath hash(final String hashExtension) {
+        checkNotNull(hashExtension);
+        checkArgument(hashType == null, "This path is already a hash: %s", this);
         Coordinates hashCoordinates = null;
         if (coordinates != null) {
             hashCoordinates = new Coordinates(
+                    coordinates.getNamespace(),
                     coordinates.getPackageName(),
                     coordinates.getVersion(),
                     coordinates.getBuildString(),
-                    coordinates.getExtension() + "." + hashType.getExt()
-            );
+                    coordinates.getExtension() + "." + hashExtension);
         }
         return new CondaPath(
-                path + "." + hashType.getExt(),
+                path + "." + hashExtension,
                 hashCoordinates
         );
     }

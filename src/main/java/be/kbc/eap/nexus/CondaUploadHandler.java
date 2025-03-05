@@ -1,18 +1,13 @@
 package be.kbc.eap.nexus;
 
-import be.kbc.eap.nexus.internal.CondaFacetUtils;
-import be.kbc.eap.nexus.internal.CondaFormat;
-import com.google.common.hash.HashCode;
-import org.joda.time.DateTime;
-import org.sonatype.nexus.common.hash.HashAlgorithm;
+import be.kbc.eap.nexus.datastore.CondaContentFacet;
+
 import org.sonatype.nexus.common.text.Strings2;
 import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.rest.UploadDefinitionExtension;
 import org.sonatype.nexus.repository.security.ContentPermissionChecker;
 import org.sonatype.nexus.repository.security.VariableResolverAdapter;
-import org.sonatype.nexus.repository.storage.Bucket;
 import org.sonatype.nexus.repository.storage.StorageFacet;
-import org.sonatype.nexus.repository.storage.StorageTx;
 import org.sonatype.nexus.repository.upload.*;
 import org.sonatype.nexus.repository.view.Content;
 import org.sonatype.nexus.repository.view.Payload;
@@ -55,12 +50,11 @@ public class CondaUploadHandler
     }
 
     private UploadResponse doUpload(final Repository repository, final ComponentUpload componentUpload) throws IOException {
-        CondaFacet facet = repository.facet(CondaFacet.class);
-        StorageFacet storageFacet = repository.facet(StorageFacet.class);
+        CondaContentFacet facet = repository.facet(CondaContentFacet.class);
         ContentAndAssetPathResponseData responseData;
 
         String basePath = "/";
-        UnitOfWork.begin(storageFacet.txSupplier());
+
         try {
             // store uploaded artifact
             responseData = createAssets(repository, basePath, componentUpload.getAssetUploads());
@@ -68,7 +62,7 @@ public class CondaUploadHandler
             facet.rebuildRepoDataJson();
         }
         finally {
-            UnitOfWork.end();
+
         }
 
         return new UploadResponse(responseData.getContent(), responseData.getAssetPaths());
@@ -115,18 +109,18 @@ public class CondaUploadHandler
                                         final Payload payload,
                                         final String indexJson) throws IOException
     {
-        CondaFacet condaFacet = repository.facet(CondaFacet.class);
+        CondaContentFacet condaFacet = repository.facet(CondaContentFacet.class);
         Content content = condaFacet.put(condaPath, payload, indexJson);
         //putChecksumFiles(condaFacet, condaPath, content);
 
         return content;
     }
 
-    private void putChecksumFiles(final CondaFacet facet, final CondaPath path, final Content content) throws IOException {
-        DateTime dateTime = content.getAttributes().require(Content.CONTENT_LAST_MODIFIED, DateTime.class);
-        Map<HashAlgorithm, HashCode> hashes = CondaFacetUtils.getHashAlgorithmFromContent(content.getAttributes());
-        CondaFacetUtils.addHashes(facet, path, hashes, dateTime);
-    }
+//    private void putChecksumFiles(final CondaContentFacet facet, final CondaPath path, final Content content) throws IOException {
+//        DateTime dateTime = content.getAttributes().require(Content.CONTENT_LAST_MODIFIED, DateTime.class);
+//        Map<HashAlgorithm, HashCode> hashes = CondaFacetUtils.getHashAlgorithmFromContent(content.getAttributes());
+//        CondaFacetUtils.addHashes(facet, path, hashes, dateTime);
+//    }
 
     @Override
     public UploadDefinition getDefinition() {

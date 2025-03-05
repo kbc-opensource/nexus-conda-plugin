@@ -3,8 +3,8 @@ package be.kbc.eap.nexus.rest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import be.kbc.eap.nexus.internal.CondaFormat;
-import be.kbc.eap.nexus.internal.api.CondaHostedRepositoriesAttributes;
+import be.kbc.eap.nexus.CondaFormat;
+import be.kbc.eap.nexus.api.CondaHostedRepositoriesAttributes;
 import org.sonatype.nexus.repository.rest.api.model.ComponentAttributes;
 import org.sonatype.nexus.repository.rest.api.model.HostedRepositoryApiRequest;
 import org.sonatype.nexus.repository.rest.api.model.CleanupPolicyAttributes;

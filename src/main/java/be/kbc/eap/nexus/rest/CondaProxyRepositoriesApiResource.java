@@ -1,6 +1,6 @@
 package be.kbc.eap.nexus.rest;
 
-import be.kbc.eap.nexus.internal.CondaFormat;
+import be.kbc.eap.nexus.CondaFormat;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;

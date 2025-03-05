@@ -15,6 +15,9 @@ Compatibility matrix
 | v1.4.0         | 3.54.1                   |                                        |
 | v1.4.1         | 3.54.1                   | Adds API routes for Conda repositories |
 | v1.6.0         | 3.61.0                   | Adds Support for ZST files             |
+| v1.8.0         | 3.68.1                   | Adds Support for PostgreSQL DB         |
+| v1.10.0        | 3.70.2                   | Fixes some issues                      |
+
 
 ### Build
 * Clone the project
@@ -26,7 +29,7 @@ Compatibility matrix
   mvn clean install -PbuildKar
   ```
 
-* This will create a kar file:  `target/nexus-conda-plugin-1.6.0-bundle.kar`
+* This will create a kar file:  `target/nexus-conda-plugin-1.8.0-bundle.kar`
 
 ### Install
 
@@ -51,7 +54,7 @@ This will cause the plugin to be loaded and started with each startup of Nexus R
 
 * Setup proxy, group and hosted repo's as you would normally do
 * To upload a package to conda use curl:
-  `curl -F conda.asset1.path=win-64/<package>.tar.bz2 -F "conda.asset1.index=<index.json" -F conda.asset1=@package.tar.bz2  https://<server>/service/rest/v1/components?repository=<repository-name>`
+  `curl -F conda.asset.path=win-64/<package>.tar.bz2 -F "conda.asset.index=<index.json" -F conda.asset=@package.tar.bz2  https://<server>/service/rest/v1/components?repository=<repository-name>`
   index.json contains the index.json file contained in the tar.bz2 file
 
 ## The Fine Print
