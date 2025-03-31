@@ -12,7 +12,7 @@
 
     <groupId>be.kbc.eap.nexus</groupId>
     <artifactId>nexus-conda-plugin</artifactId>
-    <version>1.10.0</version>
+    <version>1.13.0</version>
 
     <packaging>bundle</packaging>
 
@@ -42,13 +42,20 @@
             <scope>provided</scope>
         </dependency>
 
-
         <dependency>
             <groupId>org.sonatype.nexus</groupId>
-            <artifactId>nexus-repository</artifactId>
+            <artifactId>nexus-common</artifactId>
             <scope>provided</scope>
-            <optional>true</optional>
         </dependency>
+
+
+
+<!--        <dependency>-->
+<!--            <groupId>org.sonatype.nexus</groupId>-->
+<!--            <artifactId>nexus-repository</artifactId>-->
+<!--            <scope>provided</scope>-->
+<!--            <optional>true</optional>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.sonatype.nexus</groupId>
@@ -66,7 +73,7 @@
             <groupId>org.sonatype.nexus</groupId>
             <artifactId>nexus-repository-content</artifactId>
             <scope>provided</scope>
-            <optional>true</optional>
+<!--            <optional>true</optional>-->
         </dependency>
 
         <dependency>
@@ -112,23 +119,31 @@
         </dependency>
 
 
+<!--        <dependency>-->
+<!--            <groupId>org.sonatype.goodies</groupId>-->
+<!--            <artifactId>goodies-testsupport</artifactId>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
         <dependency>
-            <groupId>org.sonatype.goodies</groupId>
-            <artifactId>goodies-testsupport</artifactId>
+            <groupId>org.sonatype.nexus</groupId>
+            <artifactId>nexus-testsupport</artifactId>
             <scope>test</scope>
         </dependency>
-
+<!--        <dependency>-->
+<!--            <groupId>org.sonatype.nexus</groupId>-->
+<!--            <artifactId>nexus-test-db</artifactId>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.github.luben</groupId>
             <artifactId>zstd-jni</artifactId>
             <version>1.5.5-11</version>
         </dependency>
-
         <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jdk8</artifactId>
-            <version>2.12.5</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
         </dependency>
+
 
     </dependencies>
 
