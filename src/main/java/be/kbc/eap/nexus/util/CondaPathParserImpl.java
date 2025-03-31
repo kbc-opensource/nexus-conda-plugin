@@ -34,14 +34,9 @@ public class CondaPathParserImpl
         if (path.startsWith("/")) {
             pathWithoutLeadingSlash = path.substring(1);
         }
-        try {
-            final CondaPath.Coordinates coordinates = condaPathToCoordinates(pathWithoutLeadingSlash, caseSensitive);
-            return new CondaPath(pathWithoutLeadingSlash, coordinates);
-        }
-        catch (Exception e) {
-            return new CondaPath(pathWithoutLeadingSlash, null);
-        }
 
+        final CondaPath.Coordinates coordinates = condaPathToCoordinates(pathWithoutLeadingSlash);
+        return new CondaPath(pathWithoutLeadingSlash, coordinates);
 
     }
 
@@ -57,7 +52,7 @@ public class CondaPathParserImpl
 
     @Nullable
     @VisibleForTesting
-    CondaPath.Coordinates condaPathToCoordinates(final String pathString, final boolean caseSensitive) {
+    CondaPath.Coordinates condaPathToCoordinates(final String pathString) {
         String str = pathString;
 
         String[] pathParts = str.split("/");

@@ -28,21 +28,27 @@ public class CondaHostedRecipe extends CondaRecipeSupport {
 
     public static final String NAME = "conda-hosted";
 
-    @Inject
     CondaHostedHandler condaHostedHandler;
 
-    @Inject
-    LastDownloadedHandler lastDownloadedHandler;
+    private LastDownloadedHandler lastDownloadedHandler;
 
-    @Inject
     private Provider<CondaContentFacet> contentFacet;
 
-    @Inject
     private Provider<CondaHostedFacetImpl> condaHostedFacet;
 
     @Inject
-    public CondaHostedRecipe(@Named(HostedType.NAME) Type type, @Named(CondaFormat.NAME)  Format format) {
+    public CondaHostedRecipe(
+            @Named(HostedType.NAME) Type type,
+            @Named(CondaFormat.NAME) Format format,
+            final Provider<CondaContentFacet> contentFacet,
+            final Provider<CondaHostedFacetImpl> condaHostedFacet,
+            final CondaHostedHandler condaHostedHandler,
+            final LastDownloadedHandler lastDownloadedHandler) {
         super(type, format);
+        this.contentFacet = contentFacet;
+        this.condaHostedFacet = condaHostedFacet;
+        this.condaHostedHandler = condaHostedHandler;
+        this.lastDownloadedHandler = lastDownloadedHandler;
     }
 
     @Override

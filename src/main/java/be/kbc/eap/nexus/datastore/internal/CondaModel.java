@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-final class CondaModel {
+public final class CondaModel {
 
     private String architecture;
     private String buildNumber;

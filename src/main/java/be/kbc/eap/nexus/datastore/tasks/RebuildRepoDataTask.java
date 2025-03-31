@@ -6,10 +6,8 @@ import org.sonatype.nexus.repository.Format;
 import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.RepositoryTaskSupport;
 import org.sonatype.nexus.repository.Type;
-import org.sonatype.nexus.repository.storage.StorageFacet;
 import org.sonatype.nexus.repository.types.HostedType;
 import org.sonatype.nexus.scheduling.Cancelable;
-import org.sonatype.nexus.transaction.UnitOfWork;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -38,7 +36,7 @@ public class RebuildRepoDataTask
     protected void execute(final Repository repository) {
         CondaContentFacet condaFacet = repository.facet(CondaContentFacet.class);
         try {
-            condaFacet.rebuildRepoDataJson();
+            condaFacet.rebuildRepoDataJson(repository);
         } catch (IOException e) {
             e.printStackTrace();
         }

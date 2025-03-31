@@ -30,19 +30,24 @@ public class CondaProxyRecipe extends CondaRecipeSupport {
 
     public static final String NAME = "conda-proxy";
 
-    @Inject
     private Provider<CondaContentFacet> contentFacet;
-    @Inject
     private Provider<CondaProxyFacet> proxyFacet;
-    @Inject
     private ProxyHandler proxyHandler;
 
 
     protected final Logger log = Loggers.getLogger(this);
 
     @Inject
-    public CondaProxyRecipe(@Named(ProxyType.NAME) Type type, @Named(CondaFormat.NAME) Format format) {
+    public CondaProxyRecipe(
+            @Named(ProxyType.NAME) Type type,
+            @Named(CondaFormat.NAME) Format format,
+            final Provider<CondaContentFacet> contentFacet,
+            final Provider<CondaProxyFacet> proxyFacet,
+            final ProxyHandler proxyHandler) {
         super(type, format);
+        this.contentFacet = contentFacet;
+        this.proxyFacet = proxyFacet;
+        this.proxyHandler = proxyHandler;
     }
 
     @Override

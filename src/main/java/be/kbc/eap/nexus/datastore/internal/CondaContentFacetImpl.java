@@ -1,5 +1,6 @@
 package be.kbc.eap.nexus.datastore.internal;
 
+import be.kbc.eap.nexus.AssetKind;
 import be.kbc.eap.nexus.CondaFormat;
 import be.kbc.eap.nexus.CondaPath;
 import be.kbc.eap.nexus.CondaPathParser;
@@ -7,9 +8,9 @@ import be.kbc.eap.nexus.datastore.CondaContentFacet;
 import be.kbc.eap.nexus.util.ZstdUtils;
 import be.kbc.eap.nexus.util.CondaPathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.*;
 import org.apache.commons.lang3.StringUtils;
-import org.sonatype.nexus.blobstore.api.*;
 import org.sonatype.nexus.common.collect.NestedAttributesMap;
 import org.sonatype.nexus.common.hash.HashAlgorithm;
 import org.sonatype.nexus.common.stateguard.Guarded;
@@ -19,15 +20,11 @@ import org.sonatype.nexus.repository.config.Configuration;
 import org.sonatype.nexus.repository.config.WritePolicy;
 import org.sonatype.nexus.repository.content.Component;
 import org.sonatype.nexus.repository.content.RepositoryContent;
-import org.sonatype.nexus.repository.content.facet.ContentFacet;
 import org.sonatype.nexus.repository.content.facet.ContentFacetSupport;
 import org.sonatype.nexus.repository.content.fluent.FluentAsset;
 import org.sonatype.nexus.repository.content.fluent.FluentAssetBuilder;
 import org.sonatype.nexus.repository.content.fluent.FluentComponent;
-import org.sonatype.nexus.repository.content.store.ComponentStore;
 import org.sonatype.nexus.repository.content.store.FormatStoreManager;
-import org.sonatype.nexus.repository.transaction.TransactionalStoreBlob;
-import org.sonatype.nexus.repository.types.ProxyType;
 import org.sonatype.nexus.repository.view.Content;
 import org.sonatype.nexus.repository.view.ContentTypes;
 import org.sonatype.nexus.repository.view.Payload;
@@ -45,8 +42,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static be.kbc.eap.nexus.AssetKind.REPODATA;
 import static be.kbc.eap.nexus.datastore.internal.CondaAttributesHelper.assetKind;
@@ -62,15 +57,12 @@ public class CondaContentFacetImpl extends ContentFacetSupport implements CondaC
 
     private static final List<HashAlgorithm> HASH_ALGORITHMS = Collections.singletonList(HashAlgorithm.SHA1);
 
-    private final BlobStoreManager blobStoreManager;
-
     private final Map<String, CondaPathParser> condaPathParsers;
     private CondaPathParser condaPathParser;
 
     @Inject
-    public CondaContentFacetImpl(@Named(CondaFormat.NAME) FormatStoreManager formatStoreManager, BlobStoreManager blobStoreManager, Map<String, CondaPathParser> condaPathParsers) {
+    public CondaContentFacetImpl(@Named(CondaFormat.NAME) FormatStoreManager formatStoreManager, Map<String, CondaPathParser> condaPathParsers) {
         super(formatStoreManager);
-        this.blobStoreManager = blobStoreManager;
         this.condaPathParsers = condaPathParsers;
     }
 
@@ -87,28 +79,6 @@ public class CondaContentFacetImpl extends ContentFacetSupport implements CondaC
 
 
     @Override
-    public int deleteComponents(final Stream<FluentComponent> components) {
-        ContentFacetSupport contentFacet = (ContentFacetSupport) facet(ContentFacet.class);
-        ComponentStore<?> componentStore = contentFacet.stores().componentStore;
-        List<FluentComponent> componentsList = components.collect(Collectors.toList());
-
-        if (!ProxyType.NAME.equals(repository().getType().getValue())) {
-            int deletedCount = componentStore.purge(contentFacet.contentRepositoryId(), componentsList);
-
-            try {
-                rebuildRepoDataJson();
-            } catch (IOException e) {
-
-            }
-            return deletedCount;
-        }
-        else {
-            return componentStore.purge(contentFacet.contentRepositoryId(), componentsList);
-        }
-    }
-
-    @Override
-    @TransactionalStoreBlob
     public Content put(final CondaPath path, final Payload content) throws IOException {
         return put(path, content, null);
     }
@@ -116,11 +86,24 @@ public class CondaContentFacetImpl extends ContentFacetSupport implements CondaC
     @Guarded(by = STARTED)
     @Override
     public Content put(final CondaPath path, final Payload content, String indexJson) throws IOException {
-        log.info("CondaFacetImpl - put - " + path.getPath() + " - " + content.getSize());
+        log.info("CondaFacetImpl - " + repository().getName() + " - put - " + path.getPath() + " - " + content.getSize());
 
         try (TempBlob blob = blobs().ingest(content, CondaPath.HashType.ALGORITHMS)){
             return doPutContent(path, blob, content, indexJson);
         }
+    }
+
+    @Override
+    public Content putRepoData(CondaPath path, Payload content) {
+        log.info("CondaFacetImpl - " + repository().getName() + " - putRepoData - " + path.getPath() + " - " + content.getSize());
+
+        try (TempBlob blob = blobs().ingest(content, CondaPath.HashType.ALGORITHMS)){
+            return saveRepoData(path, blob).markAsCached(content).download();
+        }
+    }
+
+    private FluentAsset saveRepoData(final CondaPath path, final TempBlob tempBlob) {
+        return this.assets().path(CondaPathUtils.normalizeAssetPath(path.getPath())).kind(AssetKind.REPODATA.name()).blob(tempBlob).save();
     }
 
     @Override
@@ -139,13 +122,6 @@ public class CondaContentFacetImpl extends ContentFacetSupport implements CondaC
                 .find();
     }
 
-    @Override
-    public boolean delete(final List<String> paths) {
-        Repository repository = getRepository();
-        log.trace("DELETE {} assets at {}", repository.getName(), paths);
-        return stores().assetStore.deleteAssetsByPaths(contentRepositoryId(), paths) > 0;
-    }
-
     private boolean deleteAsset(final CondaPath condaPath) {
         return findAsset(assetPath(condaPath))
                 .map(FluentAsset::delete)
@@ -162,10 +138,13 @@ public class CondaContentFacetImpl extends ContentFacetSupport implements CondaC
 
     private void deleteIfNoAssetsLeft(final FluentComponent component) {
         if (component.assets().isEmpty()) {
+
+            final Repository repository = component.repository();
+
             component.delete();
             //publishEvents(component);
             try {
-                rebuildRepoDataJson();
+                rebuildRepoDataJson(repository);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -207,43 +186,93 @@ public class CondaContentFacetImpl extends ContentFacetSupport implements CondaC
 
     @Override
     @Transactional
-    public String rebuildRepoDataJson() throws IOException {
+    public String rebuildRepoDataJson(final Repository repository) throws IOException {
 
-        log.info("Rebuilding repodata json/zstd");
+        String repositoryName = repository.getName();
+
+        log.info(repositoryName + " - Rebuilding repodata json/zstd");
 
         Map<String, List<JsonObject>> architectures = new HashMap<>();
         architectures.put("noarch", new ArrayList<>());
 
         // fill our list with all the components/assets and store the metadata to build our repodata.json
 
-
         this.assets().browse(Integer.MAX_VALUE, null).forEach(asset -> {
             try {
-                if (!asset.path().endsWith("repodata.json") || !asset.path().endsWith("repodata.json.zst")) {
-                    log.debug("Processing " + asset.path());
-                    Optional<Component> optionalComponent = asset.component();
-                    if (!optionalComponent.isPresent())
-                        return;
+                processAsset(asset, repositoryName, architectures);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            ;
+        });
 
-                    log.debug("Fetching component");
-                    Component component = optionalComponent.get();
+        // now build the repodata.json files
 
-                    if (!architectures.containsKey(component.namespace())) {
-                        architectures.put(component.namespace(), new ArrayList<>());
-                    }
+        log.trace("Building json string");
 
-                    log.debug("Fetching attributes");
-                    List<JsonObject> artifacts = architectures.get(component.namespace());
-                    NestedAttributesMap formatAttributes = asset.attributes("attributes");
-                    log.debug(formatAttributes.toString());
-                    formatAttributes = asset.attributes("conda");
-                    log.debug(formatAttributes.toString());
+        Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+        for(String arch : architectures.keySet()) {
 
-                    if (!formatAttributes.contains("build_number")) {
-                        return;
-                    }
+            log.debug(repositoryName + " - Building repodata.json for " + arch);
 
-                    log.debug("Building artifact properties");
+            JsonObject root = new JsonObject();
+            JsonObject info = new JsonObject();
+            info.addProperty("subdir", arch);
+            root.add("info", info);
+            JsonObject packages = new JsonObject();
+
+            for(JsonObject artifact : architectures.get(arch)) {
+                Set<Map.Entry<String, JsonElement>> entries = artifact.entrySet();
+                for (Map.Entry<String, JsonElement> entry : entries) {
+                    log.trace("Adding package " + entry.getKey());
+                    packages.add(entry.getKey(), entry.getValue());
+                }
+            }
+
+            root.add("packages", packages);
+
+            String payload = gson.toJson(root);
+
+            Content content = new Content(new StringPayload(payload, ContentTypes.APPLICATION_JSON));
+            String repodataJsonPath = arch + "/repodata.json";
+            String repodataJsonZstPath = arch + "/repodata.json.zst";
+
+            put(new CondaPath(repodataJsonPath, null), content);
+            log.debug(repositoryName + " - Attempting to compress repodata.json to ZST format");
+            compressAndSaveRepoDataJsonZst(repodataJsonPath, repodataJsonZstPath);
+            log.debug(repositoryName + " - Repodata.json correctly rebuild and compressed to zst format");
+        }
+
+        return "";
+    }
+
+    @VisibleForTesting
+    protected void processAsset(FluentAsset asset, String repositoryName, Map<String, List<JsonObject>> architectures) {
+        if (!asset.path().endsWith("repodata.json") || !asset.path().endsWith("repodata.json.zst")) {
+            log.debug(repositoryName + " - Processing " + asset.path());
+            Optional<Component> optionalComponent = asset.component();
+            if (!optionalComponent.isPresent())
+                return;
+
+            log.trace(repositoryName + " - Fetching component");
+            Component component = optionalComponent.get();
+
+            if (!architectures.containsKey(component.namespace())) {
+                architectures.put(component.namespace(), new ArrayList<>());
+            }
+
+            log.trace(repositoryName + " - Fetching attributes");
+            List<JsonObject> artifacts = architectures.get(component.namespace());
+            NestedAttributesMap formatAttributes = asset.attributes("attributes");
+            log.debug(formatAttributes.toString());
+            formatAttributes = asset.attributes("conda");
+            log.debug(formatAttributes.toString());
+
+            if (!formatAttributes.contains("build_number")) {
+                return;
+            }
+
+            log.trace(repositoryName + " - Building artifact properties");
 
                     JsonObject artifact = new JsonObject();
                     artifact.addProperty("arch", formatAttributes.get("arch", "noarch").toString());
@@ -261,63 +290,20 @@ public class CondaContentFacetImpl extends ContentFacetSupport implements CondaC
                     artifact.addProperty("md5", asset.blob().get().checksums().get(HashAlgorithm.MD5.name()).toString());
                     String depends = formatAttributes.get("depends").toString();
 
-                    JsonArray jDepends = new JsonArray();
-                    if (!Strings2.isEmpty(depends)) {
-                        String[] parts = depends.split(";");
-                        for (String part : parts) {
-                            jDepends.add(new JsonPrimitive(part));
-                        }
-                    }
-                    artifact.add("depends", jDepends);
-                    CondaPath condaPath = new CondaPath(asset.path().substring(1), null);
-                    JsonObject parentArtifact = new JsonObject();
-                    parentArtifact.add(condaPath.getFileName(), artifact);
-                    artifacts.add(parentArtifact);
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            ;
-        });
-
-        // now build the repodata.json files
-
-        log.debug("Building json string");
-
-        Gson gson = new GsonBuilder().disableHtmlEscaping().create();
-        for(String arch : architectures.keySet()) {
-
-            log.debug("Building repodata.json for " + arch);
-
-            JsonObject root = new JsonObject();
-            JsonObject info = new JsonObject();
-            info.addProperty("subdir", arch);
-            root.add("info", info);
-            JsonObject packages = new JsonObject();
-
-            for(JsonObject artifact : architectures.get(arch)) {
-                Set<Map.Entry<String, JsonElement>> entries = artifact.entrySet();
-                for (Map.Entry<String, JsonElement> entry : entries) {
-                    log.debug("Adding package " + entry.getKey());
-                    packages.add(entry.getKey(), entry.getValue());
+            JsonArray jDepends = new JsonArray();
+            if (!Strings2.isEmpty(depends)) {
+                String[] parts = depends.split(";");
+                for (String part : parts) {
+                    jDepends.add(new JsonPrimitive(part));
                 }
             }
-
-            root.add("packages", packages);
-
-            String payload = gson.toJson(root);
-
-            Content content = new Content(new StringPayload(payload, ContentTypes.APPLICATION_JSON));
-            String repodataJsonPath = arch + "/repodata.json";
-            String repodataJsonZstPath = arch + "/repodata.json.zst";
-
-            put(new CondaPath(repodataJsonPath, null), content);
-            log.info("Attempting to compress repodata.json to ZST format");
-            compressAndSaveRepoDataJsonZst(repodataJsonPath, repodataJsonZstPath);
-            log.info("Repodata.json correctly rebuild and compressed to zst format");
+            artifact.add("depends", jDepends);
+            CondaPath condaPath = new CondaPath(asset.path().substring(1), null);
+            JsonObject parentArtifact = new JsonObject();
+            parentArtifact.add(condaPath.getFileName(), artifact);
+            artifacts.add(parentArtifact);
         }
 
-        return "";
     }
 
 
@@ -375,31 +361,6 @@ public class CondaContentFacetImpl extends ContentFacetSupport implements CondaC
         return saveAsset(path, component, content, blob, model);
     }
 
-//    static String assetKind(final CondaPath condaPath, final CondaPathParser condaPathParser) {
-//        if (condaPath.getCoordinates() != null) {
-//            return artifactRelatedAssetKind(condaPath);
-//        }
-//        else {
-//            return fileAssetKindFor(condaPath, condaPathParser);
-//        }
-//    }
-//
-//    private static String artifactRelatedAssetKind(final CondaPath condaPath) {
-//        return condaPath.isSubordinate() ? ARTIFACT_SUBORDINATE.name() : ARTIFACT.name();
-//    }
-//
-//    private static String fileAssetKindFor(final MavenPath mavenPath, final MavenPathParser mavenPathParser) {
-//        if (mavenPathParser.isRepositoryMetadata(mavenPath)) {
-//            return REPOSITORY_METADATA.name();
-//        }
-//        else if (mavenPathParser.isRepositoryIndex(mavenPath)) {
-//            return REPOSITORY_INDEX.name();
-//        }
-//        else {
-//            return OTHER.name();
-//        }
-//    }
-
     private Content saveAsset(
             final CondaPath condaPath,
             final Component component,
@@ -446,15 +407,6 @@ public class CondaContentFacetImpl extends ContentFacetSupport implements CondaC
         CondaAttributesHelper.setCondaAttributes(
                 stores().componentStore, component, coordinates, model.orElse(null), contentRepositoryId());
 
-//        if (isNew) {
-//            // BDV: no-op
-//            //publishEvents(component);
-//
-//        }
-//        else {
-//            // kind isn't set for existing components
-//            optionalKind.ifPresent(component::kind);
-//        }
         return component;
     }
 
@@ -463,37 +415,6 @@ public class CondaContentFacetImpl extends ContentFacetSupport implements CondaC
         return repositoryContent.attributes().isEmpty();
     }
 
-    private void fillAttributesFromJson(String indexJson, NestedAttributesMap attributesMap) {
-        Gson gson = new Gson();
-        JsonObject indexRoot = gson.fromJson(indexJson, JsonObject.class);
-        attributesMap.set("arch", getJsonAttribute(indexRoot, "arch", "noarch"));
-        attributesMap.set("build_number", getJsonAttribute(indexRoot, "build_number", ""));
-        attributesMap.set("license", getJsonAttribute(indexRoot, "license", ""));
-        attributesMap.set("license_family", getJsonAttribute(indexRoot, "license_family", ""));
-        attributesMap.set("platform", getJsonAttribute(indexRoot, "platform", "UNKNOWN"));
-        attributesMap.set("subdir", getJsonAttribute(indexRoot, "subdir", ""));
 
-        JsonArray depends = indexRoot.get("depends").getAsJsonArray();
-        List<String> sDepends = new ArrayList<>();
 
-        for(JsonElement depend : depends) {
-            sDepends.add(depend.getAsString());
-        }
-
-        attributesMap.set("depends", String.join(";", sDepends));
-    }
-
-    private String getJsonAttribute(JsonObject json, String attribute, String defaultValue) {
-        if(json.has(attribute) && !json.get(attribute).isJsonNull()) {
-            return json.get(attribute).getAsString();
-        }
-        return defaultValue;
-    }
-
-//    private Content toContent(final Asset asset, final Blob blob) {
-//        final Content content = new Content(new BlobPayload(blob, asset.requireContentType()));
-//        Content.extractFromAsset(asset, HASH_ALGORITHMS, content.getAttributes());
-//        log.debug("Convert asset to content - Content Size: " + content.getSize() + " - Asset size: " + asset.size().toString());
-//        return content;
-//    }
 }

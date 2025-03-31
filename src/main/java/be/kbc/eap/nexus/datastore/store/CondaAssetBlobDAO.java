@@ -1,4 +1,4 @@
-package be.kbc.eap.nexus.datastore.internal.store;
+package be.kbc.eap.nexus.datastore.store;
 
 import org.sonatype.nexus.repository.content.store.AssetBlobDAO;
 

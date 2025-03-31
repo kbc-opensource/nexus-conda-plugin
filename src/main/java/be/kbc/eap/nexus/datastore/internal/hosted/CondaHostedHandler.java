@@ -3,9 +3,9 @@ package be.kbc.eap.nexus.datastore.internal.hosted;
 import be.kbc.eap.nexus.CondaPath;
 import be.kbc.eap.nexus.datastore.CondaContentFacet;
 import org.sonatype.goodies.common.ComponentSupport;
+import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.content.fluent.FluentAsset;
 import org.sonatype.nexus.repository.http.HttpResponses;
-import org.sonatype.nexus.repository.view.Content;
 import org.sonatype.nexus.repository.view.Context;
 import org.sonatype.nexus.repository.view.Handler;
 import org.sonatype.nexus.repository.view.Response;
@@ -28,7 +28,7 @@ public class CondaHostedHandler extends ComponentSupport implements Handler {
         String method = context.getRequest().getAction();
         CondaPath path = context.getAttributes().require(CondaPath.class);
 
-        log.debug("Handling {} request for path: {}", method, path.getPath());
+        log.debug("Handling {} request in {} for path: {}", context.getRepository().getName(), method, path.getPath());
 
         CondaContentFacet condaFacet = context.getRepository().facet(CondaContentFacet.class);
         switch (method) {
@@ -38,7 +38,7 @@ public class CondaHostedHandler extends ComponentSupport implements Handler {
             case PUT:
                 return doPut(context, path, condaFacet);
             case DELETE:
-                return doDelete(path, condaFacet);
+                return doDelete(path, condaFacet, context.getRepository());
             default:
                 return HttpResponses.methodNotAllowed(context.getRequest().getAction(), GET, HEAD, PUT, DELETE);
 
@@ -59,13 +59,13 @@ public class CondaHostedHandler extends ComponentSupport implements Handler {
         return HttpResponses.created();
     }
 
-    private Response doDelete(final CondaPath condaPath, final CondaContentFacet condaFacet) throws IOException {
+    private Response doDelete(final CondaPath condaPath, final CondaContentFacet condaFacet, final Repository repository) throws IOException {
         log.info("Delete " + condaPath.getPath());
         boolean deleted = condaFacet.delete(condaPath);
         if(!deleted) {
             return HttpResponses.notFound(condaPath.getPath());
         }
-        condaFacet.rebuildRepoDataJson();
+        condaFacet.rebuildRepoDataJson(repository);
         return HttpResponses.noContent();
     }
 }

@@ -52,7 +52,6 @@ final class CondaAttributesHelper {
         }
         log.debug("Update attributes");
         component.attributes(OVERLAY, CondaFormat.NAME, condaAttributes);
-        //fillInBaseVersionColumn(componentStore, component, repositoryId, coordinates.getBaseVersion());
     }
 
     static void setCondaAttributes(final FluentAsset asset, final CondaPath condaPath, final Optional<CondaModel> model) {

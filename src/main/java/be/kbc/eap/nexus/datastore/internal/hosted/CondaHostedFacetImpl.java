@@ -31,7 +31,7 @@ public class CondaHostedFacetImpl extends FacetSupport implements EventAware.Asy
                 log.debug("Asset deleted event for repository {}", repository.getName());
                 CondaContentFacet condaContentFacet = repository.facet(CondaContentFacet.class);
                 try {
-                    condaContentFacet.rebuildRepoDataJson();
+                    condaContentFacet.rebuildRepoDataJson(repository);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

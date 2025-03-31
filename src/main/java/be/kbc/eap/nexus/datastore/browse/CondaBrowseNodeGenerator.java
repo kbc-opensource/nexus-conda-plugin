@@ -1,4 +1,4 @@
-package be.kbc.eap.nexus.datastore.internal.browse;
+package be.kbc.eap.nexus.datastore.browse;
 
 
 import be.kbc.eap.nexus.CondaFormat;

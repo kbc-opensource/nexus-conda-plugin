@@ -7,17 +7,17 @@ import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.rest.UploadDefinitionExtension;
 import org.sonatype.nexus.repository.security.ContentPermissionChecker;
 import org.sonatype.nexus.repository.security.VariableResolverAdapter;
-import org.sonatype.nexus.repository.storage.StorageFacet;
 import org.sonatype.nexus.repository.upload.*;
 import org.sonatype.nexus.repository.view.Content;
 import org.sonatype.nexus.repository.view.Payload;
-import org.sonatype.nexus.transaction.UnitOfWork;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.IOException;
 import java.util.*;
+
+import static org.apache.commons.lang3.StringUtils.prependIfMissing;
 
 
 @Named(CondaFormat.NAME)
@@ -33,7 +33,6 @@ public class CondaUploadHandler
     private final CondaPathParser parser;
     private final VariableResolverAdapter variableResolverAdapter;
     private final ContentPermissionChecker contentPermissionChecker;
-
 
     @Inject
     public CondaUploadHandler(final CondaPathParser parser,
@@ -55,11 +54,16 @@ public class CondaUploadHandler
 
         String basePath = "/";
 
+        CondaPath condaPath = getCondaPath(basePath, componentUpload.getAssetUploads().get(0));
+        String path = prependIfMissing(condaPath.getPath(), "/");
+
+        ensurePermitted(repository.getName(), CondaFormat.NAME, path, toMap(condaPath.getCoordinates()));
+
         try {
             // store uploaded artifact
             responseData = createAssets(repository, basePath, componentUpload.getAssetUploads());
             // update metadata
-            facet.rebuildRepoDataJson();
+            facet.rebuildRepoDataJson(repository);
         }
         finally {
 
@@ -68,7 +72,17 @@ public class CondaUploadHandler
         return new UploadResponse(responseData.getContent(), responseData.getAssetPaths());
     }
 
-
+    protected Map<String, String> toMap(final CondaPath.Coordinates coordinates) {
+        Map<String, String> map = new HashMap<>();
+        if (coordinates != null) {
+            map.put("namespace", coordinates.getNamespace());
+            map.put("packageName", coordinates.getPackageName());
+            map.put("version", coordinates.getVersion());
+            map.put("buildVersion", coordinates.getBuildString());
+            map.put("extension", coordinates.getExtension());
+        }
+        return map;
+    }
 
     private ContentAndAssetPathResponseData createAssets(final Repository repository,
                               final String basePath,
@@ -79,16 +93,8 @@ public class CondaUploadHandler
         for(AssetUpload asset: assetUploads) {
 
             log.debug("Processing asset of size " + asset.getPayload().getSize());
-            StringBuilder path = new StringBuilder(basePath);
-            String assetPath = asset.getFields().get(PATH);
-            if(!Strings2.isEmpty(assetPath)) {
-                if(assetPath.startsWith("/")) {
-                    assetPath = assetPath.substring(1);
-                }
-                path.append(assetPath);
-            }
 
-            CondaPath condaPath = parser.parsePath(path.toString());
+            CondaPath condaPath = getCondaPath(basePath, asset);
             String indexJson = asset.getFields().get(INDEX);
 
             Content content = storeAssetContent(repository, condaPath, asset.getPayload(), indexJson);
@@ -102,6 +108,18 @@ public class CondaUploadHandler
         }
 
         return responseData;
+    }
+
+    private CondaPath getCondaPath(final String basePath, final AssetUpload asset) {
+        StringBuilder path = new StringBuilder(basePath);
+        String assetPath = asset.getFields().get(PATH);
+        if(!Strings2.isEmpty(assetPath)) {
+            if(assetPath.startsWith("/")) {
+                assetPath = assetPath.substring(1);
+            }
+            path.append(assetPath);
+        }
+        return parser.parsePath(path.toString());
     }
 
     protected Content storeAssetContent(final Repository repository,

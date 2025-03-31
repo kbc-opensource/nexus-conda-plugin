@@ -27,12 +27,12 @@ public class CondaMatcherSupport
         };
     }
 
-    private final CondaPathParser mavenPathParser;
+    private final CondaPathParser condaPathParser;
 
     private final Predicate<String> predicate;
 
-    public CondaMatcherSupport(final CondaPathParser mavenPathParser, final Predicate<String> predicate) {
-        this.mavenPathParser = checkNotNull(mavenPathParser);
+    public CondaMatcherSupport(final CondaPathParser condaPathParser, final Predicate<String> predicate) {
+        this.condaPathParser = checkNotNull(condaPathParser);
         this.predicate = checkNotNull(predicate);
     }
 
@@ -40,7 +40,7 @@ public class CondaMatcherSupport
     public boolean matches(Context context) {
         final String path = context.getRequest().getPath();
         if (predicate.apply(path)) {
-            final CondaPath condaPath = mavenPathParser.parsePath(path);
+            final CondaPath condaPath = condaPathParser.parsePath(path);
             context.getAttributes().set(CondaPath.class, condaPath);
             return true;
         }

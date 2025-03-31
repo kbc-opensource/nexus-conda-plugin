@@ -25,63 +25,140 @@ import javax.inject.Provider;
 
 public abstract class CondaRecipeSupport extends RecipeSupport {
 
-    @Inject
     protected Provider<BrowseFacet> browseFacet;
 
-    @Inject
     protected Provider<CondaSecurityFacet> securityFacet;
 
-    @Inject
     protected Provider<ConfigurableViewFacet> viewFacet;
 
-    @Inject
     protected Provider<SearchFacet> searchFacet;
 
-    @Inject
     protected ExceptionHandler exceptionHandler;
 
-    @Inject
     protected TimingHandler timingHandler;
 
-    @Inject
     protected SecurityHandler securityHandler;
 
-    @Inject
     protected PartialFetchHandler partialFetchHandler;
 
-    @Inject
     protected ConditionalRequestHandler conditionalRequestHandler;
 
-    @Inject
     protected ContentHeadersHandler contentHeadersHandler;
 
-    @Inject
     protected HandlerContributor handlerContributor;
 
-    @Inject
     protected Provider<LastAssetMaintenanceFacet> maintenanceFacet;
 
-    @Inject
     protected Provider<HttpClientFacet> httpClientFacet;
 
-    @Inject
     protected Provider<PurgeUnusedFacet> purgeUnusedFacet;
 
-    @Inject
     protected Provider<NegativeCacheFacet> negativeCacheFacet;
 
-    @Inject
     protected NegativeCacheHandler negativeCacheHandler;
 
-    @Inject
-    protected RoutingRuleHandler routingHandler;
+    protected RoutingRuleHandler routingRuleHandler;
+
+    protected LastDownloadedHandler lastDownloadedHandler;
+
+
+    protected CondaPathParser condaPathParser;
 
     @Inject
-    protected LastDownloadedHandler lastDownloadedHandler;
+    public void setBrowseFacet(Provider<BrowseFacet> browseFacet) {
+        this.browseFacet = browseFacet;
+    }
+
+    @Inject
+    public void setSecurityFacet(Provider<CondaSecurityFacet> securityFacet) {
+        this.securityFacet = securityFacet;
+    }
+
+    @Inject
+    public void setViewFacet(Provider<ConfigurableViewFacet> viewFacet) {
+        this.viewFacet = viewFacet;
+    }
+
+    @Inject
+    public void setSearchFacet(Provider<SearchFacet> searchFacet) {
+        this.searchFacet = searchFacet;
+    }
+
+    @Inject
+    public void setExceptionHandler(ExceptionHandler exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
+    }
+
+    @Inject
+    public void setTimingHandler(TimingHandler timingHandler) {
+        this.timingHandler = timingHandler;
+    }
+
+    @Inject
+    public void setSecurityHandler(SecurityHandler securityHandler) {
+        this.securityHandler = securityHandler;
+    }
+
+    @Inject
+    public void setPartialFetchHandler(PartialFetchHandler partialFetchHandler) {
+        this.partialFetchHandler = partialFetchHandler;
+    }
+
+    @Inject
+    public void setConditionalRequestHandler(ConditionalRequestHandler conditionalRequestHandler) {
+        this.conditionalRequestHandler = conditionalRequestHandler;
+    }
+
+    @Inject
+    public void setContentHeadersHandler(ContentHeadersHandler contentHeadersHandler) {
+        this.contentHeadersHandler = contentHeadersHandler;
+    }
+
+    @Inject
+    public void setHandlerContributor(HandlerContributor handlerContributor) {
+        this.handlerContributor = handlerContributor;
+    }
+
+    @Inject
+    public void setMaintenanceFacet(Provider<LastAssetMaintenanceFacet> maintenanceFacet) {
+        this.maintenanceFacet = maintenanceFacet;
+    }
+
+    @Inject
+    public void setHttpClientFacet(Provider<HttpClientFacet> httpClientFacet) {
+        this.httpClientFacet = httpClientFacet;
+    }
+
+    @Inject
+    public void setPurgeUnusedFacet(Provider<PurgeUnusedFacet> purgeUnusedFacet) {
+        this.purgeUnusedFacet = purgeUnusedFacet;
+    }
+
+    @Inject
+    public void setNegativeCacheFacet(Provider<NegativeCacheFacet> negativeCacheFacet) {
+        this.negativeCacheFacet = negativeCacheFacet;
+    }
+
+    @Inject
+    public void setNegativeCacheHandler(NegativeCacheHandler negativeCacheHandler) {
+        this.negativeCacheHandler = negativeCacheHandler;
+    }
+
+    @Inject
+    public void setRoutingRuleHandler(RoutingRuleHandler routingRuleHandler) {
+        this.routingRuleHandler = routingRuleHandler;
+    }
+
+    @Inject
+    public void setLastDownloadedHandler(LastDownloadedHandler lastDownloadedHandler) {
+        this.lastDownloadedHandler = lastDownloadedHandler;
+    }
 
     @Inject
     @Named(CondaFormat.NAME)
-    protected CondaPathParser condaPathParser;
+    public void setCondaPathParser(CondaPathParser condaPathParser) {
+        this.condaPathParser = condaPathParser;
+    }
 
     protected CondaRecipeSupport(Type type, Format format) {
         super(type, format);

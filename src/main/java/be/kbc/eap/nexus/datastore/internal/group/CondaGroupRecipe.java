@@ -29,22 +29,28 @@ public class CondaGroupRecipe extends CondaRecipeSupport {
 
     public static final String NAME = "conda-group";
 
-    @Inject
     private Provider<CondaContentFacet> contentFacet;
 
-    @Inject
     private GroupHandler groupHandler;
 
-    @Inject
     private CondaGroupMergingHandler mergingGroupHandler;
 
-    @Inject
-    private Provider<CondaContentGroupFacetImpl> groupFacet;
+    private Provider<CondaContentGroupFacet> groupFacet;
 
 
     @Inject
-    public CondaGroupRecipe(@Named(GroupType.NAME) Type type, @Named(CondaFormat.NAME) Format format) {
+    public CondaGroupRecipe(
+            @Named(GroupType.NAME) Type type,
+            @Named(CondaFormat.NAME) Format format,
+            final Provider<CondaContentFacet> contentFacet,
+            final Provider<CondaContentGroupFacet> groupFacet,
+            final GroupHandler groupHandler,
+            final CondaGroupMergingHandler groupMergingHandler) {
         super(type, format);
+        this.contentFacet = contentFacet;
+        this.groupFacet = groupFacet;
+        this.groupHandler = groupHandler;
+        this.mergingGroupHandler = groupMergingHandler;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package be.kbc.eap.nexus.datastore.internal.store;
+package be.kbc.eap.nexus.datastore.store;
 
 import be.kbc.eap.nexus.CondaFormat;
 import org.sonatype.nexus.repository.content.store.FormatStoreModule;

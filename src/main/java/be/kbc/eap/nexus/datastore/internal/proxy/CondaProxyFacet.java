@@ -22,7 +22,7 @@ public class CondaProxyFacet extends ContentProxyFacetSupport {
     protected Content getCachedContent(Context context) throws IOException {
         final CondaPath condaPath = context.getAttributes().require(CondaPath.class);
 
-        log.info("Retrieve cached content for: " + condaPath.getPath() + " from storage");
+        log.info("Retrieve cached content for: " + condaPath.getPath() + " from storage in " + context.getRepository().getName());
 
         return getCondaFacet().getAsset(condaPath.getPath()).map(FluentAsset::download).orElse(null);
     }
@@ -30,7 +30,7 @@ public class CondaProxyFacet extends ContentProxyFacetSupport {
     @Override
     protected Content store(Context context, Content content) throws IOException {
         final CondaPath condaPath = context.getAttributes().require(CondaPath.class);
-        log.info("Store content for path " + condaPath.getPath());
+        log.info("Store content for path " + condaPath.getPath() + " in " + context.getRepository().getName());
         return getCondaFacet().put(condaPath, content);
     }
 
