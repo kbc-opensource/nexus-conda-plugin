@@ -17,8 +17,7 @@ Compatibility matrix
 | v1.6.0         | 3.61.0                   | Adds Support for ZST files             |
 | v1.8.0         | 3.68.1                   | Adds Support for PostgreSQL DB         |
 | v1.10.0        | 3.70.2                   | Fixes some issues                      |
-| v1.13.0| 3.70.2 | Adds unit tests and a fix for nested grouping 
-Fixes caching in group repositories |
+| v1.13.0| 3.70.2 | Adds unit tests and a fix for nested grouping<br> Fixes caching in group repositories |
 
 
 
