@@ -1,7 +1,9 @@
 package be.kbc.eap.nexus.datastore.tasks;
 
 import be.kbc.eap.nexus.CondaFormat;
+import org.sonatype.nexus.common.upgrade.AvailabilityVersion;
 import org.sonatype.nexus.formfields.RepositoryCombobox;
+import org.sonatype.nexus.internal.datastore.DatabaseCheckImpl;
 import org.sonatype.nexus.repository.types.HostedType;
 import org.sonatype.nexus.scheduling.TaskDescriptorSupport;
 
@@ -10,6 +12,7 @@ import javax.inject.Singleton;
 
 @Named
 @Singleton
+@AvailabilityVersion(from = "1.0")
 public class RebuildRepoDataTaskDescriptor
         extends TaskDescriptorSupport {
 

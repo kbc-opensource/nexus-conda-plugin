@@ -155,8 +155,7 @@ public abstract class CondaRecipeSupport extends RecipeSupport {
     }
 
     @Inject
-    @Named(CondaFormat.NAME)
-    public void setCondaPathParser(CondaPathParser condaPathParser) {
+    public void setCondaPathParser(@Named(CondaFormat.NAME) CondaPathParser condaPathParser) {
         this.condaPathParser = condaPathParser;
     }
 

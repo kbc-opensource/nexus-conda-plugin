@@ -18,8 +18,9 @@ Compatibility matrix
 | v1.8.0         | 3.68.1                   | Adds Support for PostgreSQL DB         |
 | v1.10.0        | 3.70.2                   | Fixes some issues                      |
 | v1.13.0| 3.70.2 | Adds unit tests and a fix for nested grouping<br> Fixes caching in group repositories |
+| v1.14.0| 3.77.2 | Version bump |
 
-
+> 3.77.2 is the last version that supports loading plugins from the deploy folder until Sonatype adds support again for plugins in a future version.
 
 ### Build
 * Clone the project
