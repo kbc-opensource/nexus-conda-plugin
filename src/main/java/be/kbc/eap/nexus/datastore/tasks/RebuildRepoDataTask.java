@@ -15,6 +15,7 @@ import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@Named
 public class RebuildRepoDataTask
     extends RepositoryTaskSupport
     implements Cancelable {

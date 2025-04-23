@@ -6,6 +6,7 @@ import be.kbc.eap.nexus.datastore.internal.CondaRecipeSupport;
 import be.kbc.eap.nexus.util.matcher.CondaPathMatcher;
 import org.slf4j.Logger;
 import org.sonatype.goodies.common.Loggers;
+import org.sonatype.nexus.common.upgrade.AvailabilityVersion;
 import org.sonatype.nexus.repository.Format;
 import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.Type;
@@ -26,6 +27,7 @@ import static org.sonatype.nexus.repository.http.HttpHandlers.notFound;
 
 @Named(CondaProxyRecipe.NAME)
 @Singleton
+@AvailabilityVersion(from = "1.0")
 public class CondaProxyRecipe extends CondaRecipeSupport {
 
     public static final String NAME = "conda-proxy";

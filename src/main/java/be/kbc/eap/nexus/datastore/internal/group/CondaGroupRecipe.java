@@ -5,6 +5,7 @@ import be.kbc.eap.nexus.datastore.CondaContentFacet;
 import be.kbc.eap.nexus.datastore.internal.CondaRecipeSupport;
 import be.kbc.eap.nexus.util.matcher.CondaPathMatcher;
 import be.kbc.eap.nexus.util.matcher.CondaRepoDataMatcher;
+import org.sonatype.nexus.common.upgrade.AvailabilityVersion;
 import org.sonatype.nexus.repository.Format;
 import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.Type;
@@ -25,6 +26,7 @@ import static org.sonatype.nexus.repository.http.HttpHandlers.notFound;
 
 @Named(CondaGroupRecipe.NAME)
 @Singleton
+@AvailabilityVersion(from = "1.0")
 public class CondaGroupRecipe extends CondaRecipeSupport {
 
     public static final String NAME = "conda-group";
@@ -40,8 +42,8 @@ public class CondaGroupRecipe extends CondaRecipeSupport {
 
     @Inject
     public CondaGroupRecipe(
-            @Named(GroupType.NAME) Type type,
-            @Named(CondaFormat.NAME) Format format,
+            @Named(GroupType.NAME) final Type type,
+            @Named(CondaFormat.NAME) final Format format,
             final Provider<CondaContentFacet> contentFacet,
             final Provider<CondaContentGroupFacet> groupFacet,
             final GroupHandler groupHandler,
